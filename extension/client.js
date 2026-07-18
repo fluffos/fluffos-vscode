@@ -29,7 +29,15 @@ async function start(ctx) {
     },
     {
       documentSelector: [{ language: 'lpc' }],
-      synchronize: { configurationSection: 'lpc' },
+      synchronize: {
+        configurationSection: 'lpc',
+        // Off-editor changes (git pull, generators): keeps the workspace
+        // cross-index fresh and re-triggers driver-config discovery.
+        fileEvents: [
+          vscode.workspace.createFileSystemWatcher('**/*.{lpc,c,h}'),
+          vscode.workspace.createFileSystemWatcher('**/{config,config.*,*.cfg,*.conf}'),
+        ],
+      },
       initializationOptions: {
         settings: vscode.workspace.getConfiguration('lpc'),
       },

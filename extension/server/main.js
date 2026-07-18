@@ -620,6 +620,25 @@ connection.onInitialize((params) => {
 
 connection.onInitialized(() => startIndex());
 
+// Files changed OUTSIDE the editor (git pull, generators, deletes). The VS
+// Code client watches **/*.{lpc,c,h} plus driver-config spots; other
+// clients can send the same notification.
+connection.onDidChangeWatchedFiles((params) => {
+  for (const change of params.changes || []) {
+    let abs;
+    try { abs = fileURLToPath(change.uri); } catch (_e) { continue; }
+    // A driver config appearing/changing invalidates discovery.
+    if (/(^|[\\/])(config[^\\/]*|[^\\/]+\.(cfg|conf))$/i.test(abs)) configDiscovery.clear();
+    if (!index) continue;
+    if (change.type === 3 /* Deleted */) {
+      index.remove(abs);
+    } else if (!documents.get(pathToFileURL(abs).href)) {
+      // open documents are already authoritative via reindexDoc
+      index.updateFromDisk(abs);
+    }
+  }
+});
+
 connection.onDidChangeConfiguration((change) => {
   settings = (change.settings && change.settings.lpc) || {};
   configDiscovery.clear();

@@ -83,6 +83,14 @@ function createIndex({ tokenize, outline }) {
       if (roots.length > 0 && !roots.some((r) => abs.startsWith(r + path.sep))) return;
       indexText(abs, text, Date.now());
     },
+    // Re-index one file from disk (didChangeWatchedFiles: files changed
+    // OUTSIDE the editor -- git pull, generators).
+    updateFromDisk(abs) {
+      if (roots.length > 0 && !roots.some((r) => abs.startsWith(r + path.sep))) return;
+      if (!/\.(lpc|c|h)$/.test(abs)) return;
+      files.delete(abs); // drop the mtime short-circuit: always re-read
+      indexFile(abs);
+    },
     remove(abs) { files.delete(abs); },
 
     // name -> [{file, kind, name, line, col}] (tokenizer 1-based positions

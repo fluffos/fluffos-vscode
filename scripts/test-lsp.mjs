@@ -295,6 +295,26 @@ const wsym = await request('workspace/symbol', { query: 'util_f' });
 check('workspace/symbol: substring search over the index',
       wsym && wsym.some((s) => s.name === 'util_fn' && s.location.uri === utilUri));
 
+// watched-files: a file created OUTSIDE the editor enters the index...
+const latePath = path.join(mudlib, 'lib', 'late.lpc');
+fs.writeFileSync(latePath, 'int late_fn() { return 9; }\n');
+notify('workspace/didChangeWatchedFiles', {
+  changes: [{ uri: pathToFileURL(latePath).href, type: 1 }],
+});
+await new Promise((r) => setTimeout(r, 200));
+const lateSym = await request('workspace/symbol', { query: 'late_fn' });
+check('watched files: off-editor create is indexed',
+      lateSym && lateSym.some((s) => s.name === 'late_fn'));
+// ... and an off-editor delete leaves the index
+fs.unlinkSync(latePath);
+notify('workspace/didChangeWatchedFiles', {
+  changes: [{ uri: pathToFileURL(latePath).href, type: 3 }],
+});
+await new Promise((r) => setTimeout(r, 200));
+const goneSym = await request('workspace/symbol', { query: 'late_fn' });
+check('watched files: off-editor delete leaves the index',
+      goneSym && !goneSym.some((s) => s.name === 'late_fn'));
+
 const comp = await request('textDocument/completion', {
   textDocument: { uri: sampleUri }, position: { line: greetUse, character: 2 },
 });
