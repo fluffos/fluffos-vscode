@@ -55,8 +55,43 @@ jobs:
       - name: Extension tests
         run: node scripts/test.mjs
 
+      # Build the wasm lpcc from the pinned submodule so the released vsix
+      # bundles it (zero-setup compiler). Mirrors the fluffos repo's own
+      # build-wasm action (emsdk pin + wasm-deps cache), run inside the
+      # submodule; build.mjs auto-picks fluffos/build-wasm/src.
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: '6.0.3'
+          actions-cache-folder: emsdk-cache
+
+      - name: Cache wasm deps (ICU)
+        id: wasm-deps-cache
+        uses: actions/cache@v4
+        with:
+          path: /opt/wasm-deps
+          key: wasm-deps-icu74-2-emcc-${{ env.EMSDK }}-6.0.3
+
+      - name: Build wasm deps
+        if: steps.wasm-deps-cache.outputs.cache-hit != 'true'
+        working-directory: fluffos
+        run: sudo mkdir -p /opt/wasm-deps && sudo chown $USER /opt/wasm-deps && tools/wasm/build-deps.sh
+
+      - name: Build wasm lpcc
+        working-directory: fluffos
+        run: tools/wasm/build.sh
+
+      - name: Smoke-test wasm lpcc
+        working-directory: fluffos/testsuite
+        run: |
+          node ../build-wasm/src/lpcc.js --json --tokens etc/config.test single/tests/efuns/dual_extension.lpc \
+            | grep -q '"fluffos_lpcc"'
+          echo "wasm lpcc OK"
+
       - name: Stage and package extension
         run: node scripts/build.mjs --version "${{ steps.ver.outputs.version }}"
+
+      - name: Verify the vsix bundles the wasm lpcc
+        run: unzip -l out/fluffos-lpc-*.vsix | grep -q "bin/lpcc.wasm" && echo "bundled OK"
 
       - name: Create GitHub release
         env:
