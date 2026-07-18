@@ -264,6 +264,10 @@ function webviewHtml(webview) {
   tr.ins.fnl td:first-child { border-left: 3px solid var(--vscode-charts-purple, #c586c0); padding-left: 6px; }
   tr.ins.fnl .addr { opacity: .9; }
   .fnl-tag { color: var(--vscode-charts-purple, #c586c0); font-size: 11px; margin-left: 6px; }
+  tr.lfn-body > td { padding: 4px 0 8px 28px; }
+  .lfn-box { border-left: 3px solid var(--vscode-charts-blue, #569cd6); padding: 4px 10px;
+             background: var(--vscode-editorWidget-background, #2223); border-radius: 0 4px 4px 0; }
+  .lfn-box .hdr { margin-bottom: 3px; }
   #bc-tip { position: fixed; z-index: 10; display: none; max-width: 640px; overflow: hidden;
             background: var(--vscode-editorWidget-background, #252526);
             border: 1px solid var(--vscode-focusBorder, #07f); border-radius: 4px;
@@ -649,7 +653,7 @@ function webviewHtml(webview) {
         return fnlRanges.some((r) => a >= r[0] && a < r[1]);
       };
       const o = isTop ? outlineByName.get(fn.name) : null;
-      html += '<details open><summary>' + esc(fn.signature) +
+      html += '<details open' + (isTop ? ' id="fnsec-' + esc(fn.name) + '"' : '') + '><summary>' + esc(fn.signature) +
         (o ? ' <a class="link jump" data-l="' + o.line + '" data-c="' + o.col + '">go to source ↗</a>' : '') +
         '</summary><table><tr><th>addr</th><th>bytes</th><th>instruction</th><th>operands</th><th>src</th></tr>';
       for (const ins of fn.instructions) {
@@ -658,6 +662,11 @@ function webviewHtml(webview) {
         if (ins.target) {
           comment = comment.replace('(' + ins.target + ')',
             '(<a class="link tgt" data-a="' + ins.target + '">' + ins.target + '</a>)');
+        }
+        const lm = /^&lt;local_fun&gt; ([A-Za-z_#][A-Za-z0-9_#]*)/.exec(comment);
+        if (lm) {
+          comment = comment.replace(lm[1],
+            '<a class="link lfn" data-fn="' + lm[1] + '">' + lm[1] + ' ▸ show bytecode</a>');
         }
         const inFile = ins.srcFile && model.lpcc.relPath &&
           (ins.srcFile === model.lpcc.relPath || '/' + ins.srcFile === model.lpcc.relPath);
@@ -704,6 +713,39 @@ function webviewHtml(webview) {
       };
       tr.onmouseleave = () => { tip.style.display = 'none'; };
       tr.onclick = () => post({ type: 'reveal', line: l, col: 1 });
+    });
+    // <local_fun> NAME: expand the referenced function's bytecode inline
+    const topFns = new Map(((model.lpcc.bytecode && bcMode !== 'O0' ? model.lpcc.bytecode
+      : (model.lpcc.bytecodeO0 || model.lpcc.bytecode)) || { functions: [] }).functions
+      .map((f) => [f.name, f]));
+    el.querySelectorAll('a.lfn').forEach((a) => a.onclick = (ev) => {
+      ev.stopPropagation();
+      const row = a.closest('tr');
+      const next = row.nextElementSibling;
+      if (next && next.classList.contains('lfn-body')) { next.remove(); return; } // toggle off
+      const fn = topFns.get(a.dataset.fn);
+      if (!fn) return;
+      const MAXR = 40;
+      let box = '<div class="lfn-box"><div class="hdr"><strong>' + esc(fn.signature) + '</strong> ' +
+        '<a class="link lfngo" data-a="fnsec-' + esc(fn.name) + '">go to full listing ↓</a></div><table>' +
+        fn.instructions.slice(0, MAXR).map((i) =>
+          '<tr><td class="addr">' + i.addr + '</td><td>' + esc(i.mnemonic) + '</td><td>' +
+          esc(i.comment.length > 80 ? i.comment.slice(0, 77) + '…' : i.comment) + '</td></tr>').join('') +
+        '</table>' + (fn.instructions.length > MAXR
+          ? '<div class="muted">… ' + (fn.instructions.length - MAXR) + ' more rows in the full listing</div>' : '') +
+        '</div>';
+      const tr = document.createElement('tr');
+      tr.className = 'lfn-body';
+      tr.innerHTML = '<td colspan="5">' + box + '</td>';
+      row.after(tr);
+      tr.querySelectorAll('a.lfngo').forEach((g) => g.onclick = () => {
+        const sec = document.getElementById(g.dataset.a);
+        if (sec) {
+          sec.open = true;
+          sec.scrollIntoView({ block: 'start' });
+          sec.classList.remove('flash'); void sec.offsetWidth; sec.classList.add('flash');
+        }
+      });
     });
     el.querySelectorAll('a.jump').forEach((a) => a.onclick = (e) => {
       e.stopPropagation(); e.preventDefault();
