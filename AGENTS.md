@@ -52,9 +52,19 @@ lpcc facts the service encodes (verified against a real build):
 * Text AST S-expressions contain `(void)`-prefixed ATOM names
   (`(void)assign_local`) that must not be parsed as child lists.
 * Bytecode `; file:line` annotations TRAIL the instruction run they
-  describe. The text disassembler has a known operand-decode bug
-  (`loop_cond_number`) that desyncs addresses — parsers must tolerate
-  garbage rows; bytecode `--json` upstream is blocked on fixing it.
+  describe. (The `loop_cond_number` operand-decode desync is fixed
+  upstream; parsers still tolerate garbage rows for older pins.)
+* `--ast` (text and `--json`) on a file that the driver already loaded
+  during boot — the master, the simul_efun object, and everything they
+  inherit (every `std/` file in the fluffos testsuite) — emitted
+  NOTHING on older lpcc: parse trees only exist during a compile, and
+  `find_object()` returned the boot-loaded object without recompiling.
+  Fixed upstream (lpcc forces a recompile via the hot-reload path); on
+  older pins, including the currently bundled wasm lpcc until the next
+  pin bump, a missing ast envelope on an OK compile means "AST
+  unavailable" and must degrade gracefully (empty AST view), never be
+  treated as a parse error. Bytecode is unaffected (dumped post-hoc
+  from the surviving program).
 * Parser regressions are pinned by fixtures in `scripts/fixtures/`
   (REAL lpcc output, boot noise kept on purpose). If a stage format
   changes upstream, re-capture: build lpcc, run the stage flags against
@@ -158,7 +168,23 @@ git submodule update --init             # once, after clone
 node fluffos/tools/lpc-syntax/test.mjs  # upstream engine suite (from the pin)
 node scripts/test.mjs                   # extension-local checks (syncs first)
 node scripts/build.mjs                  # packaging must also succeed
+
+# whole-corpus gate (local only; needs a native lpcc build + the fluffos
+# testsuite -- skips cleanly when the env vars are unset):
+TESTSUITE=/path/to/fluffos/testsuite LPCC_BIN=/path/to/build/src/lpcc \
+  node scripts/test-corpus.mjs          # [--limit N] for a quick smoke
 ```
+
+`scripts/test-corpus.mjs` sweeps EVERY testsuite `.lpc`/`.c` file (761 at
+last count, minus the two raw-byte bad_utf8 fixtures) through all three
+layers: the synced engine (tokenize with an exact file-tiling invariant +
+outline + lint), the lpcc JSON pipeline (compile everything; model
+invariants on bytecode + AST; JSON-vs-text parity on a sample; a compile
+failure without diagnostics or a failure banner is a hard FAIL), and the
+real LSP server over stdio (didOpen + documentSymbol per file). Compile
+failures themselves are expected — the `fail/` fixtures plus the
+context-dependent `clone/`/crasher fixtures — and are only tallied. Run
+it after touching lpcc.js parsers, the server, or when bumping the pin.
 
 The engine's real test suite lives upstream and runs from the pin — do
 not duplicate it here. `scripts/test.mjs` covers only what lives here:
