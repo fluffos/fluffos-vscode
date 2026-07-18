@@ -132,6 +132,14 @@ lpcc.js and the synced lib/. Facts that bite:
 * Tokenizer offsets are JS string indices == UTF-16 code units == LSP's
   default position encoding; positionAt/offsetAt align with no
   conversion.
+* `scripts/test-nvim.lua` is the REAL-CLIENT gate: headless Neovim's
+  built-in LSP client against a real fluffos testsuite checkout
+  (`TESTSUITE=... LPCC_BIN=... nvim --headless -u NONE -l
+  scripts/test-nvim.lua` from the repo root) -- catches anything
+  VS-Code-specific leaking into the protocol. Verified: real compile
+  warnings from /std/base64.lpc publish into nvim diagnostics on save;
+  symbols/hover/definition/completion and lpc/model work on
+  operators/switch.lpc.
 * `scripts/test-lsp.mjs` is the gate: a protocol-level harness driving
   the REAL server over stdio (initialize → didOpen → diagnostics /
   symbols / formatting / hover / definition / completion, plus the
