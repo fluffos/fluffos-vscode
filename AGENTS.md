@@ -60,11 +60,18 @@ lpcc facts the service encodes (verified against a real build):
   NOTHING on older lpcc: parse trees only exist during a compile, and
   `find_object()` returned the boot-loaded object without recompiling.
   Fixed upstream (lpcc forces a recompile via the hot-reload path); on
-  older pins, including the currently bundled wasm lpcc until the next
-  pin bump, a missing ast envelope on an OK compile means "AST
+  older pins a missing ast envelope on an OK compile means "AST
   unavailable" and must degrade gracefully (empty AST view), never be
   treated as a parse error. Bytecode is unaffected (dumped post-hoc
   from the surviving program).
+* A wasm (32-bit) lpcc from a pin older than fluffos PR #1290 CRASHES
+  ("memory access out of bounds") on any bytecode dump of a string
+  switch with 3+ cases: switch-table keys are 8-byte `ins_int`s even
+  on 32-bit, but the disassembler walked them with a `sizeof(char*)`
+  stride — identical on 64-bit hosts, desynced on wasm32. The wasm
+  lpcc IS validated end to end now (harness + corpus subset run with
+  `LPCC_BIN=<build-wasm>/src/lpcc.js`; runStage runs `.js` compilers
+  through node) — do that for any pin bump that touches the compiler.
 * Parser regressions are pinned by fixtures in `scripts/fixtures/`
   (REAL lpcc output, boot noise kept on purpose). If a stage format
   changes upstream, re-capture: build lpcc, run the stage flags against
