@@ -109,8 +109,18 @@
           "type": "string",
           "default": "",
           "description": "Mudlib root directory; open files are passed to lpcc relative to it. Defaults to the file's workspace folder."
+        },
+        "lpc.useLanguageServer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use the bundled LPC language server (diagnostics, outline, formatting, hover, definition, completion, and the Compiler Explorer data). Turn off to fall back to the legacy in-process providers."
         }
       }
     }
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12"
   }
 }

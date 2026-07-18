@@ -14,6 +14,7 @@ const path = require('path');
 const { pathToFileURL } = require('url');
 const lpcc = require('./lpcc.js');
 const config = require('./config.js');
+const lspClient = require('./client.js');
 
 const panels = new Map(); // doc uri string -> ExplorerPanel
 
@@ -27,6 +28,13 @@ function loadTokenizer(ctx) {
 }
 
 async function buildModel(ctx, doc) {
+  // Prefer the language server (single compile pipeline, shared cache);
+  // fall back to the in-process build when it isn't running.
+  const lspModel = await lspClient.requestModel(doc.uri);
+  if (lspModel) {
+    lspModel.file = vscode.workspace.asRelativePath(doc.uri);
+    return lspModel;
+  }
   const tokenize = await loadTokenizer(ctx);
   const source = doc.getText();
   const tokens = tokenize(source);

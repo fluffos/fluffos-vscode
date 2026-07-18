@@ -39,7 +39,9 @@ const STAGE_FLAGS = {
 };
 
 // One diagnostic line: /path/file.lpc:12:5: error: message
-const DIAG_RE = /^\/?(.+?):(\d+):(\d+): (error|warning): (.*)$/;
+// The column is optional: lexer-class errors (e.g. "Cannot #include x")
+// print file:line: only.
+const DIAG_RE = /^\/?(.+?):(\d+)(?::(\d+))?: (error|warning): (.*)$/;
 
 // Parse clang-style diagnostics out of mixed lpcc output.
 // Returns [{file, line, col, severity, message}] (file mudlib-relative,
@@ -49,7 +51,7 @@ function parseDiagnostics(text) {
   for (const l of String(text).split(/\r?\n/)) {
     const m = DIAG_RE.exec(l);
     if (m) {
-      out.push({ file: m[1], line: +m[2], col: +m[3], severity: m[4], message: m[5] });
+      out.push({ file: m[1], line: +m[2], col: m[3] ? +m[3] : 1, severity: m[4], message: m[5] });
     }
   }
   return out;
@@ -79,6 +81,45 @@ function runStage(opts, relPath, stage) {
         });
       });
   });
+}
+
+// Where the driver's debug log lives for a config (compile diagnostics land
+// THERE, not on stderr, when the mudlib's master has no log_error apply).
+function debugLogPath(opts) {
+  let logDir = 'log', logFile = 'debug.log';
+  try {
+    const cfg = require('fs').readFileSync(opts.configFile, 'utf8');
+    const d = /^log directory\s*:\s*(.+)$/m.exec(cfg);
+    const f = /^debug log file\s*:\s*(.+)$/m.exec(cfg);
+    if (d) logDir = d[1].trim();
+    if (f) logFile = f[1].trim();
+  } catch (_e) { /* unreadable config: defaults */ }
+  const path = require('path');
+  const dir = path.isAbsolute(logDir) ? logDir : path.join(opts.mudlibRoot, logDir);
+  return path.join(dir, logFile);
+}
+
+// runStage + a debug-log fallback: when the compile failed but produced no
+// stderr/stdout diagnostics, parse whatever the driver APPENDED to the debug
+// log during this run (byte-offset bracketed, so stale entries from earlier
+// runs can never republish).
+async function runStageWithLog(opts, relPath, stage) {
+  const fs = require('fs');
+  const log = debugLogPath(opts);
+  let before = 0;
+  try { before = fs.statSync(log).size; } catch (_e) { /* no log yet */ }
+  const r = await runStage(opts, relPath, stage);
+  if (!r.ok && r.diagnostics.length === 0) {
+    try {
+      const fd = fs.openSync(log, 'r');
+      const size = fs.fstatSync(fd).size;
+      const buf = Buffer.alloc(Math.max(0, size - before));
+      fs.readSync(fd, buf, 0, buf.length, before);
+      fs.closeSync(fd);
+      r.diagnostics = parseDiagnostics(buf.toString('utf8'));
+    } catch (_e) { /* no log: keep empty */ }
+  }
+  return r;
 }
 
 // --- JSON envelopes (lpcc --json) ------------------------------------------------
@@ -556,6 +597,8 @@ module.exports = {
   STAGE_FLAGS,
   DIAG_RE,
   runStage,
+  runStageWithLog,
+  debugLogPath,
   parseEnvelopes,
   tokensFromJson,
   astFromJson,

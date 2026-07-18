@@ -243,5 +243,17 @@ check('outline: globals and #defines found, locals not',
       o.variables.map((v) => v.name).join(',') === 'counter,name' &&
       o.defines.map((d) => d.name).join(',') === 'GREET');
 
+// --- LSP server: protocol-level harness (real server over stdio) ---------------
+if (!fs.existsSync(path.join(extDir, 'node_modules', 'vscode-languageserver'))) {
+  console.log('  installing extension npm deps (language server libs) ...');
+  execFileSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: extDir, stdio: 'inherit' });
+}
+try {
+  execFileSync(process.execPath, [path.join(repoRoot, 'scripts', 'test-lsp.mjs')],
+               { stdio: 'inherit', env: process.env });
+} catch (_e) {
+  failures++;
+}
+
 console.log(failures === 0 ? '\nAll fluffos-vscode tests passed.' : `\n${failures} FAILURES`);
 process.exit(failures === 0 ? 0 : 1);

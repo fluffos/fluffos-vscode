@@ -114,6 +114,35 @@ quoted into `""` by the driver's config parser and then fails as an
 copies `lpcc.js`/`lpcc.wasm` into `extension/bin/` (gitignored) from
 `$LPCC_WASM_DIR` or `fluffos/build-wasm/src` when present.
 
+## 2c. The language server
+
+`extension/server/main.js` (official `vscode-languageserver` lib; deps
+declared in extension/package.json, installed into the stage at package
+time) is protocol plumbing ONLY — all language knowledge comes from
+lpcc.js and the synced lib/. Facts that bite:
+
+* Capabilities must advertise `textDocumentSync.save: true` (object
+  form) or clients never send didSave and lpcc diagnostics never run.
+* Compiler diagnostics land in the DRIVER DEBUG LOG, not stderr, when
+  the mudlib's master lacks a log_error apply — `runStageWithLog()`
+  brackets the log by byte offset around the compile and parses only
+  the appended slice (stale entries can never republish). Lexer-class
+  errors ("Cannot #include x") have NO column; DIAG_RE's column is
+  optional.
+* Tokenizer offsets are JS string indices == UTF-16 code units == LSP's
+  default position encoding; positionAt/offsetAt align with no
+  conversion.
+* `scripts/test-lsp.mjs` is the gate: a protocol-level harness driving
+  the REAL server over stdio (initialize → didOpen → diagnostics /
+  symbols / formatting / hover / definition / completion, plus the
+  lpcc-on-save and lpc/model paths when LPCC_BIN is set). Run via
+  scripts/test.mjs. The hand-rolled JSON-RPC lives in the harness only;
+  the server always uses the official library.
+* The VS Code client (extension/client.js, vscode-languageclient, node
+  IPC) is default-on via lpc.useLanguageServer; extension.js keeps the
+  legacy in-process providers as the fallback path — don't delete them
+  until the server has soaked.
+
 ## 3. Test & verify
 
 ```bash

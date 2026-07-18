@@ -25,6 +25,7 @@ const { pathToFileURL } = require('url');
 const explorer = require('./explorer.js');
 const symbols = require('./symbols.js');
 const lpcConfig = require('./config.js');
+const lspClient = require('./client.js');
 
 let lintPromise = null;
 let formatPromise = null;
@@ -123,6 +124,25 @@ function runLpcc(ctx, doc, coll) {
 // --- activation --------------------------------------------------------------
 
 function activate(ctx) {
+  // Commands work in both modes.
+  ctx.subscriptions.push(
+    vscode.commands.registerCommand('lpc.openExplorer', () => explorer.openExplorer(ctx)),
+    lpcConfig.register(ctx));
+
+  if (lspClient.enabled()) {
+    // The language server owns diagnostics, symbols, formatting, hover,
+    // definition and completion; nothing else to register in-process.
+    lspClient.start(ctx).catch((err) => {
+      vscode.window.showWarningMessage(
+        'LPC language server failed to start (' + err.message + '); falling back in-process.');
+      legacyActivate(ctx);
+    });
+    return;
+  }
+  legacyActivate(ctx);
+}
+
+function legacyActivate(ctx) {
   const lintColl = vscode.languages.createDiagnosticCollection('lpc-lint');
   const lpccColl = vscode.languages.createDiagnosticCollection('lpcc');
   ctx.subscriptions.push(lintColl, lpccColl);
@@ -149,10 +169,7 @@ function activate(ctx) {
     runLint(doc, lintColl, ctx);
   }
 
-  ctx.subscriptions.push(
-    vscode.commands.registerCommand('lpc.openExplorer', () => explorer.openExplorer(ctx)),
-    lpcConfig.register(ctx),
-    symbols.register(ctx));
+  ctx.subscriptions.push(symbols.register(ctx));
 
   ctx.subscriptions.push(
     vscode.languages.registerDocumentFormattingEditProvider('lpc', {

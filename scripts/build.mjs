@@ -176,6 +176,13 @@ console.log(`staged ${extDir}`);
 console.log(`  -> ${stageDir}`);
 console.log(`  version: ${pkg.version}, fluffos commit: ${pinnedCommit}`);
 
+// The language server + client run from node_modules at runtime: install
+// production deps into the stage so the vsix is self-contained.
+if (doPackage) {
+  execFileSync('npm', ['install', '--omit=dev', '--no-audit', '--no-fund'],
+               { cwd: stageDir, stdio: 'inherit' });
+}
+
 // --- package -----------------------------------------------------------------
 
 if (doPackage) {

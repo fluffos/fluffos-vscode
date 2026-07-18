@@ -58,6 +58,22 @@ README).
 | `.github/workflows/release.yml` | Tag `vX.Y.Z` or manual dispatch: GitHub Release with the `.vsix`; optional Marketplace / Open VSX publish. |
 | `.github/workflows/bump-fluffos.yml` | Weekly + manual: bumps the submodule to latest fluffos master, tests, opens a PR. |
 
+## Language server (LSP)
+
+The extension ships a full **LPC language server** (`extension/server/`,
+built on the official `vscode-languageserver` library) and uses it by
+default (`lpc.useLanguageServer`): diagnostics (structural lint as you
+type + real lpcc compiler errors on save, including in `#include`d
+files), outline/breadcrumbs, formatting, hover, go-to-definition
+(functions/globals/defines, `#include` and `inherit` targets via the
+driver config's include dirs), completion, and custom `lpc/*` requests
+(`lpc/model`, `lpc/tokens`, `lpc/ast`, `lpc/bytecode`) that serve the
+Compiler Explorer's data — the webview is a pure renderer over LSP.
+Other editors can run it standalone: `node extension/server/main.js
+--stdio` (after `npm install` in `extension/`), configured via
+`initializationOptions.settings` / `workspace/didChangeConfiguration`
+with the same `lpc.*` shape as the VS Code settings.
+
 ## Zero-setup compiler (bundled wasm lpcc)
 
 When the vsix is built with a wasm `lpcc` (`LPCC_WASM_DIR=<dir> node
