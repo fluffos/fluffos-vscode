@@ -59,9 +59,14 @@ function parseDiagnostics(text) {
 function runStage(opts, relPath, stage) {
   const flags = STAGE_FLAGS[stage];
   if (!flags) return Promise.reject(new Error(`unknown lpcc stage: ${stage}`));
+  // A .js lpcc is the wasm build (NODERAWFS node CLI, same CLI contract as
+  // the native binary) -- run it through the current node executable.
+  const isWasm = /\.[cm]?js$/.test(opts.lpccPath);
+  const exe = isWasm ? process.execPath : opts.lpccPath;
+  const baseArgs = isWasm ? [opts.lpccPath] : [];
   return new Promise((resolve) => {
     cp.execFile(
-      opts.lpccPath, [...flags, opts.configFile, relPath],
+      exe, [...baseArgs, ...flags, opts.configFile, relPath],
       { cwd: opts.mudlibRoot, timeout: 30000, maxBuffer: 32 * 1024 * 1024 },
       (err, stdout, stderr) => {
         resolve({

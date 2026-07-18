@@ -114,8 +114,12 @@ function runLpcc(doc, coll) {
   if (s === null) return;
   const rel = path.relative(s.mudlibRoot, doc.fileName).split(path.sep).join('/');
   if (rel.startsWith('..')) return; // outside the mudlib
+  // A .js lpcc is the wasm build (NODERAWFS node CLI, same CLI contract
+  // as the native binary) -- run it through the current node executable.
+  const isWasm = /\.[cm]?js$/.test(s.lpcc);
   cp.execFile(
-    s.lpcc, [s.configFile, rel],
+    isWasm ? process.execPath : s.lpcc,
+    isWasm ? [s.lpcc, s.configFile, rel] : [s.configFile, rel],
     { cwd: s.mudlibRoot, timeout: 30000, maxBuffer: 4 * 1024 * 1024 },
     (_err, stdout, stderr) => {
       // lpcc exits nonzero on compile errors -- the diagnostics ARE the
