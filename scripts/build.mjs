@@ -109,6 +109,28 @@ fs.copyFileSync(tmSrc, path.join(synDir, 'lpc.tmLanguage.json'));
 
 console.log(`synced generated inputs from fluffos @ ${pinnedCommit}`);
 
+// --- optional: bundle the wasm lpcc (zero-setup compiler) ---------------------
+// Sources, first hit wins: $LPCC_WASM_DIR, or a wasm build inside the
+// submodule (fluffos/build-wasm/src). When present, lpcc.js/lpcc.wasm land
+// in extension/bin/ (gitignored) and ship in the vsix; the extension runs
+// them through node when lpc.lpcc.path is unset.
+const binDir = path.join(extDir, 'bin');
+fs.rmSync(binDir, { recursive: true, force: true });
+const wasmCandidates = [
+  process.env.LPCC_WASM_DIR,
+  path.join(repoRoot, 'fluffos', 'build-wasm', 'src'),
+].filter(Boolean);
+const wasmSrc = wasmCandidates.find(
+  (d) => fs.existsSync(path.join(d, 'lpcc.js')) && fs.existsSync(path.join(d, 'lpcc.wasm')));
+if (wasmSrc) {
+  fs.mkdirSync(binDir, { recursive: true });
+  fs.copyFileSync(path.join(wasmSrc, 'lpcc.js'), path.join(binDir, 'lpcc.js'));
+  fs.copyFileSync(path.join(wasmSrc, 'lpcc.wasm'), path.join(binDir, 'lpcc.wasm'));
+  console.log(`bundled wasm lpcc from ${wasmSrc}`);
+} else {
+  console.log('no wasm lpcc found (set LPCC_WASM_DIR or build the wasm preset in the submodule); packaging without a bundled compiler');
+}
+
 // --- stage -------------------------------------------------------------------
 
 fs.rmSync(stageDir, { recursive: true, force: true });

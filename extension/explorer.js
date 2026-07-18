@@ -13,6 +13,7 @@ const vscode = require('vscode');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const lpcc = require('./lpcc.js');
+const config = require('./config.js');
 
 const panels = new Map(); // doc uri string -> ExplorerPanel
 
@@ -23,20 +24,6 @@ function loadTokenizer(ctx) {
     tokenizePromise = import(url).then((m) => m.tokenize);
   }
   return tokenizePromise;
-}
-
-function lpccSettings(doc) {
-  const cfg = vscode.workspace.getConfiguration('lpc', doc.uri);
-  const lpccPath = cfg.get('lpcc.path', '');
-  const configFile = cfg.get('lpcc.configFile', '');
-  let mudlibRoot = cfg.get('mudlibRoot', '');
-  if (!mudlibRoot) {
-    const folder = vscode.workspace.getWorkspaceFolder(doc.uri);
-    mudlibRoot = folder ? folder.uri.fsPath : path.dirname(doc.uri.fsPath);
-  }
-  const relPath = path.relative(mudlibRoot, doc.uri.fsPath).split(path.sep).join('/');
-  const available = !!(lpccPath && configFile) && !relPath.startsWith('..');
-  return { lpccPath, configFile, mudlibRoot, relPath, available };
 }
 
 async function buildModel(ctx, doc) {
@@ -50,7 +37,7 @@ async function buildModel(ctx, doc) {
     outline: lpcc.outline(tokens),
     lpcc: { available: false },
   };
-  const s = lpccSettings(doc);
+  const s = config.resolveLpccSettings(ctx, doc);
   if (s.available) {
     // Prefer the --json stages (token names, AST source lines); older lpcc
     // rejects --json, so fall back to parsing the human text formats.
@@ -147,7 +134,7 @@ class ExplorerPanel {
     }
     if (msg.type === 'openFile') {
       // mudlib-relative path from a "; file:line" bytecode annotation
-      const s = lpccSettings(await vscode.workspace.openTextDocument(this.docUri));
+      const s = config.resolveLpccSettings(this.ctx, await vscode.workspace.openTextDocument(this.docUri));
       const abs = path.join(s.mudlibRoot, msg.file);
       try {
         const doc = await vscode.workspace.openTextDocument(abs);

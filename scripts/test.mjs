@@ -204,6 +204,34 @@ check('lpcc --json ast: absolute lines resolve through include segments',
         return hit && hit.src && hit.src.file === 'clone/explorer_sample.lpc' && hit.src.line === 6;
       })());
 
+// scaffold: the zero-setup .lpc/ config template (lpc.initConfig command)
+const scaffold = lpccSvc.makeScaffoldFiles('/tmp/mudlib');
+check('scaffold: config + master + global include + log dir',
+      Object.keys(scaffold).length === 4 &&
+      scaffold['.lpc/config'].includes('mudlib directory : /tmp/mudlib') &&
+      scaffold['.lpc/config'].includes('global include file : <globals.h>') &&
+      scaffold['.lpc/master.lpc'].includes('get_root_uid') &&
+      '.lpc/include/globals.h' in scaffold);
+
+// End-to-end scaffold validation against a REAL lpcc (local only: set
+// LPCC_BIN=/path/to/lpcc; CI has no native driver build and skips).
+if (process.env.LPCC_BIN) {
+  const os = await import('node:os');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lpc-scaffold-'));
+  for (const [rel, content] of Object.entries(lpccSvc.makeScaffoldFiles(tmp))) {
+    fs.mkdirSync(path.dirname(path.join(tmp, rel)), { recursive: true });
+    fs.writeFileSync(path.join(tmp, rel), content);
+  }
+  fs.writeFileSync(path.join(tmp, 'hello.lpc'), 'int add(int a, int b) { return a + b; }\n');
+  const r = execFileSync(process.env.LPCC_BIN,
+    ['--json', '--tokens', '.lpc/config', 'hello.lpc'], { cwd: tmp, encoding: 'utf8' });
+  check('scaffold: REAL lpcc boots and compiles with the .lpc/ template',
+        r.includes('"fluffos_lpcc"'));
+  fs.rmSync(tmp, { recursive: true, force: true });
+} else {
+  console.log('  (skip) scaffold real-lpcc validation: set LPCC_BIN to run');
+}
+
 // outline() drives document symbols/breadcrumbs and AST/bytecode anchoring.
 const { tokenize } = await import(pathToFileURL(path.join(extDir, 'lib', 'tokenizer.mjs')).href);
 const sampleSrc = fixture('sample.lpc');

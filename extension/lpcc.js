@@ -432,6 +432,36 @@ function stripNoise(raw) {
     .replace(/^\n+/, '').replace(/\n+$/, '\n');
 }
 
+// Pure: the scaffold file set for a mudlib root (absolute path).
+// Returned paths are relative to the mudlib root.
+function makeScaffoldFiles(mudlibAbs) {
+  return {
+    '.lpc/config': [
+      'name : lpc-explorer',
+      `mudlib directory : ${mudlibAbs}`,
+      'log directory : .lpc/log',
+      'master file : /.lpc/master',
+      'include directories : /include:/.lpc/include',
+      'global include file : <globals.h>',
+      '',
+    ].join('\n'),
+    '.lpc/master.lpc': [
+      '// Minimal master object scaffolded by the LPC extension: just enough',
+      '// applies for lpcc (compile-only) use. Point lpc.lpcc.configFile at',
+      '// your real driver config instead once you have one.',
+      'string get_root_uid() { return "root"; }',
+      'string get_bb_uid() { return "backbone"; }',
+      'string creator_file(string file) { return "root"; }',
+      'string domain_file(string file) { return "domain"; }',
+      'string author_file(string file) { return "author"; }',
+      '',
+    ].join('\n'),
+    '.lpc/include/globals.h':
+      '// Global include (every LPC file sees this first). Add shared defines here.\n',
+    '.lpc/log/.gitkeep': '',
+  };
+}
+
 // --- outline (tokenizer-driven, no lpcc needed) -----------------------------------
 //
 // A structural outline from the bundled grammar tokenizer: top-level
@@ -537,4 +567,5 @@ module.exports = {
   parseBytecode,
   stripNoise,
   outline,
+  makeScaffoldFiles,
 };

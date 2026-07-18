@@ -58,6 +58,20 @@ README).
 | `.github/workflows/release.yml` | Tag `vX.Y.Z` or manual dispatch: GitHub Release with the `.vsix`; optional Marketplace / Open VSX publish. |
 | `.github/workflows/bump-fluffos.yml` | Weekly + manual: bumps the submodule to latest fluffos master, tests, opens a PR. |
 
+## Zero-setup compiler (bundled wasm lpcc)
+
+When the vsix is built with a wasm `lpcc` (`LPCC_WASM_DIR=<dir> node
+scripts/build.mjs`, or a `build-wasm/` build inside the submodule), the
+extension needs **no settings at all**: with `lpc.lpcc.path` unset it runs
+the bundled `bin/lpcc.js` through node, and with `lpc.lpcc.configFile`
+unset it uses `<workspace>/.lpc/config` if present. Run **"LPC:
+Initialize compiler config"** once in a mudlib workspace to scaffold that
+config (a minimal `name`/`mudlib`/`master`/`include` template plus a tiny
+master object under `.lpc/` — never overwrites existing files), and
+save-time compiler diagnostics plus every Compiler Explorer view light up.
+Point the two `lpc.lpcc.*` settings at a real driver build and config to
+override.
+
 ## Build & develop locally
 
 Requires Node ≥ 18 and git; no npm install (`@vscode/vsce` is fetched by

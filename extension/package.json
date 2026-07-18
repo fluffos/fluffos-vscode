@@ -26,6 +26,10 @@
         "command": "lpc.openExplorer",
         "title": "LPC: Open Compiler Explorer",
         "icon": "$(circuit-board)"
+      },
+      {
+        "command": "lpc.initConfig",
+        "title": "LPC: Initialize compiler config (.lpc/ scaffold)"
       }
     ],
     "menus": {
@@ -40,6 +44,9 @@
         {
           "command": "lpc.openExplorer",
           "when": "editorLangId == lpc"
+        },
+        {
+          "command": "lpc.initConfig"
         }
       ]
     },

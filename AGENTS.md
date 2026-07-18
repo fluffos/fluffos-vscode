@@ -95,6 +95,25 @@ via `npx` at package time):
 `build.mjs` validates `--version` against plain `X.Y.Z` for that reason.
 Don't "fix" that validation.
 
+## 2b. Zero-setup compiler chain
+
+`extension/config.js` resolves lpcc settings with defaults:
+`lpc.lpcc.path` unset → bundled `bin/lpcc.js` (wasm, run via node);
+`lpc.lpcc.configFile` unset → `<workspace>/.lpc/config`. The
+`lpc.initConfig` command scaffolds that config from
+`makeScaffoldFiles()` in lpcc.js (kept vscode-free so tests and the
+phase-2 LSP can use it). Scaffold facts learned empirically against a
+real driver: `name`, `mudlib directory`, `log directory`, `master file`,
+and `include directories` are the mandatory config lines; the master
+must define the uid applies (`get_root_uid` etc.) or boot aborts; and
+`global include file` must name a REAL file — an empty value gets
+quoted into `""` by the driver's config parser and then fails as an
+#include, so the scaffold always ships `.lpc/include/globals.h`.
+`scripts/test.mjs` validates the scaffold against a real lpcc when
+`LPCC_BIN` is set (local only; CI skips). Bundling: `scripts/build.mjs`
+copies `lpcc.js`/`lpcc.wasm` into `extension/bin/` (gitignored) from
+`$LPCC_WASM_DIR` or `fluffos/build-wasm/src` when present.
+
 ## 3. Test & verify
 
 ```bash

@@ -6,3 +6,4 @@ node_modules/
 # never committed.
 extension/lib/
 extension/syntaxes/
+extension/bin/

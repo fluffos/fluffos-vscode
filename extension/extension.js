@@ -24,6 +24,7 @@ const cp = require('child_process');
 const { pathToFileURL } = require('url');
 const explorer = require('./explorer.js');
 const symbols = require('./symbols.js');
+const lpcConfig = require('./config.js');
 
 let lintPromise = null;
 let formatPromise = null;
@@ -95,31 +96,18 @@ function parseLpccOutput(text, mudlibRoot) {
   return byFile;
 }
 
-function lpccSettings(doc) {
-  const cfg = vscode.workspace.getConfiguration('lpc', doc.uri);
-  const lpcc = cfg.get('lpcc.path', '');
-  const configFile = cfg.get('lpcc.configFile', '');
-  if (!lpcc || !configFile) return null;
-  let mudlibRoot = cfg.get('mudlibRoot', '');
-  if (!mudlibRoot) {
-    const folder = vscode.workspace.getWorkspaceFolder(doc.uri);
-    if (!folder) return null;
-    mudlibRoot = folder.uri.fsPath;
-  }
-  return { lpcc, configFile, mudlibRoot };
-}
-
-function runLpcc(doc, coll) {
-  const s = lpccSettings(doc);
-  if (s === null) return;
-  const rel = path.relative(s.mudlibRoot, doc.fileName).split(path.sep).join('/');
-  if (rel.startsWith('..')) return; // outside the mudlib
+function runLpcc(ctx, doc, coll) {
+  // Settings resolve with zero-setup defaults: bundled wasm lpcc when no
+  // path is configured, <workspace>/.lpc/config when no config is set.
+  const s = lpcConfig.resolveLpccSettings(ctx, doc);
+  if (!s.available) return;
+  const rel = s.relPath;
   // A .js lpcc is the wasm build (NODERAWFS node CLI, same CLI contract
   // as the native binary) -- run it through the current node executable.
-  const isWasm = /\.[cm]?js$/.test(s.lpcc);
+  const isWasm = /\.[cm]?js$/.test(s.lpccPath);
   cp.execFile(
-    isWasm ? process.execPath : s.lpcc,
-    isWasm ? [s.lpcc, s.configFile, rel] : [s.configFile, rel],
+    isWasm ? process.execPath : s.lpccPath,
+    isWasm ? [s.lpccPath, s.configFile, rel] : [s.configFile, rel],
     { cwd: s.mudlibRoot, timeout: 30000, maxBuffer: 4 * 1024 * 1024 },
     (_err, stdout, stderr) => {
       // lpcc exits nonzero on compile errors -- the diagnostics ARE the
@@ -151,7 +139,7 @@ function activate(ctx) {
     vscode.workspace.onDidChangeTextDocument((e) => debounced(e.document)),
     vscode.workspace.onDidSaveTextDocument((doc) => {
       runLint(doc, lintColl, ctx);
-      if (doc.languageId === 'lpc') runLpcc(doc, lpccColl);
+      if (doc.languageId === 'lpc') runLpcc(ctx, doc, lpccColl);
     }),
     vscode.workspace.onDidCloseTextDocument((doc) => {
       lintColl.delete(doc.uri);
@@ -163,6 +151,7 @@ function activate(ctx) {
 
   ctx.subscriptions.push(
     vscode.commands.registerCommand('lpc.openExplorer', () => explorer.openExplorer(ctx)),
+    lpcConfig.register(ctx),
     symbols.register(ctx));
 
   ctx.subscriptions.push(
