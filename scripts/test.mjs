@@ -124,6 +124,17 @@ check('lpcc bytecode: address->line table parsed',
 check('lpcc bytecode: all four functions disassemble (decode-desync fix)',
       pbc.functions.length === 4 && pbc.functions.some((f) => f.name === 'create'));
 
+const pinh = lpccSvc.parseBytecode(fixture('sample-inherit.dis.txt'));
+check('lpcc bytecode: inherited programs parse as separate sections',
+      pinh.programs.length === 2 && pinh.programs[1].file === 'std/number_string.lpc' &&
+      pinh.functions.some((f) => f.name === 'describe') &&
+      pinh.programs[1].functions.length >= 1);
+
+const psw = lpccSvc.parseBytecode(fixture('sample-switch.dis.txt'));
+check('lpcc bytecode: real switch testsuite file parses (6 fns incl. 450-ins do_tests)',
+      psw.functions.length === 6 &&
+      psw.functions.find((f) => f.name === 'do_tests').instructions.length > 400);
+
 const pbcO0 = lpccSvc.parseBytecode(fixture('sample.disO0.txt'));
 check('lpcc bytecode -O0: parses as a distinct dump',
       pbcO0 && pbcO0.functions.length >= 2 && pbcO0.name === pbc.name);

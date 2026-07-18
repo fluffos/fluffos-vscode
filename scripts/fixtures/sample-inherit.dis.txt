@@ -1,0 +1,213 @@
+Processing config file: etc/config.test
+maximum local variables: invalid new value, resetting to default.
+New Debug log location: "log/debug.log".
+Execution root: ./
+Initializing internal stuff ....
+Event backend in use: epoll
+Loading simul_efun file : /single/simul_efun
+/std/base64.lpc:53:1: warning: Unused local variable 'p'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/base64.lpc:53:1: warning: Unused local variable 'rlen'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'parts'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'part'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+Loading master file: /single/master
+NAME: /clone/explorer_inh.lpc
+INHERITS:
+      name                    fio    vio
+      ----------------        ---    ---
+	std/number_string.lpc      0      0
+FUNCTIONS:
+      name                      offset  mods   flags   fio  vio # locals  # args # def args
+      ------------------------- ------  ----  -------  ---  --- --------  ------ ----------
+   0: number_string                  0   +--  i-s---v    0   0
+   1: describe                       0   +--  --s----                   0       1          0 
+
+;;; clone/explorer_inh.lpc
+
+Globals:
+   0: child_calls
+VARIABLES defined:
+   0: public int child_calls
+STRINGS:
+   0: clone/explorer_inh.lpc
+   1: include/globals.h
+   2: include/tests.h
+DISASSEMBLY:
+
+;; Function: public string describe(int)
+0000:  45 00 00                  global_lvalue                      ; child_calls(0)
+0003:  37                        inc(x)                             ; 
+; clone/explorer_inh.lpc:6
+0004:  3D 00                     transfer_local                     ; LV0
+0006:  2D 00 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; number_string, pushed_args:1
+000a:  2F                        return                             ; 
+; clone/explorer_inh.lpc:7
+
+;;;  *** Line Number Info ***
+
+absolute line -> (file, line) table:
+0 lines from 1 [clone/explorer_inh.lpc]
+11 lines from 2 [include/globals.h]
+32 lines from 3 [include/tests.h]
+25 lines from 2 [include/globals.h]
+9 lines from 1 [clone/explorer_inh.lpc]
+
+address -> absolute line table:
+0000-0003: 74
+0004-000a: 75
+
+;;; std/number_string.lpc
+
+Globals:
+VARIABLES defined:
+STRINGS:
+   0: std/number_string.lpc
+   1: include/globals.h
+   2: include/tests.h
+   3: include/lpctypes.h
+   4: 
+   5: int
+   6: float
+   7: You must specify a number of typ
+   8: .
+   9: ,
+  10: %s%s
+DISASSEMBLY:
+
+;; Function: public varargs string number_string(mixed,int)
+0000:  0E 04                     short_string                       ; ""
+0002:  6B 02                     (void)assign_local                 ; LV2
+0004:  0E 04                     short_string                       ; ""
+0006:  6B 03                     (void)assign_local                 ; LV3
+; std/number_string.lpc:12
+0008:  40 00                     local                              ; LV0
+000a:  04 DA 00                  F_EFUN1                            ; EFUN: undefinedp(218)
+000d:  25 15 00                  ||                                 ; 0015 (0023)
+0010:  40 00                     local                              ; LV0
+0012:  04 E2 00                  F_EFUN1                            ; EFUN: typeof(226)
+0015:  0E 05                     short_string                       ; "int"
+0017:  32                        !=                                 ; 
+0018:  26 0A 00                  &&                                 ; 000a (0023)
+001b:  40 00                     local                              ; LV0
+001d:  04 E2 00                  F_EFUN1                            ; EFUN: typeof(226)
+0020:  0E 06                     short_string                       ; "float"
+0022:  32                        !=                                 ; 
+0023:  17 07 00                  branch_when_zero                   ; 0007 (002b)
+; std/number_string.lpc:15
+0026:  0E 07                     short_string                       ; "You must specify a number of "
+0028:  04 38 01                  F_EFUN1                            ; EFUN: error(312)
+; std/number_string.lpc:16
+002b:  3D 00                     transfer_local                     ; LV0
+002d:  0E 04                     short_string                       ; ""
+002f:  6C                        +                                  ; 
+0030:  6B 06                     (void)assign_local                 ; LV6
+; std/number_string.lpc:19
+0032:  40 01                     local                              ; LV1
+0034:  04 DA 00                  F_EFUN1                            ; EFUN: undefinedp(218)
+0037:  76                        !                                  ; 
+0038:  25 07 00                  ||                                 ; 0007 (0040)
+003b:  02 02 C1 41               F_PUSH                             ; push local 1, number 1
+003f:  31                        ==                                 ; 
+0040:  17 5C 00                  branch_when_zero                   ; 005c (009d)
+; std/number_string.lpc:21
+0043:  02 03 C6 08 40            F_PUSH                             ; push local 6, string 8, number 0
+0048:  06 CA 00                  F_EFUN3                            ; EFUN: strsrch(202)
+004b:  6B 07                     (void)assign_local                 ; LV7
+; std/number_string.lpc:22
+004d:  40 07                     local                              ; LV7
+004f:  0C 01                     -byte                              ; -1
+0051:  15 17 00                  branch_le                          ; 0017 (0069)
+; std/number_string.lpc:24
+0054:  02 03 40 C7 41            F_PUSH                             ; push number 0, local 7, number 1
+0059:  6D                        subtract                           ; 
+005a:  40 06                     local                              ; LV6
+005c:  50                        nn_range                           ; 
+005d:  6B 02                     (void)assign_local                 ; LV2
+; std/number_string.lpc:25
+005f:  02 02 C7 C6               F_PUSH                             ; push local 7, local 6
+0063:  58                        ne_range                           ; 
+0064:  6B 03                     (void)assign_local                 ; LV3
+0066:  19 06 00                  branch                             ; 0006 (006d)
+; std/number_string.lpc:26
+0069:  40 06                     local                              ; LV6
+006b:  6B 02                     (void)assign_local                 ; LV2
+; std/number_string.lpc:28
+006d:  0E 04                     short_string                       ; ""
+006f:  6B 06                     (void)assign_local                 ; LV6
+0071:  19 16 00                  branch                             ; 0016 (0088)
+; std/number_string.lpc:32
+0074:  02 03 09 43 C2            F_PUSH                             ; push string 9, number 3, local 2
+0079:  59                        re_range                           ; 
+007a:  6C                        +                                  ; 
+007b:  40 06                     local                              ; LV6
+007d:  6C                        +                                  ; 
+007e:  6B 06                     (void)assign_local                 ; LV6
+; std/number_string.lpc:35
+0080:  02 03 40 44 C2            F_PUSH                             ; push number 0, number 4, local 2
+0085:  56                        nr_range                           ; 
+0086:  6B 02                     (void)assign_local                 ; LV2
+; std/number_string.lpc:36
+0088:  40 02                     local                              ; LV2
+008a:  04 9B 00                  F_EFUN1                            ; EFUN: sizeof(155)
+008d:  0B 03                     byte                               ; 3
+008f:  36                        >                                  ; 
+0090:  1B 1D 00                  bbranch_when_non_zero              ; 001d (0074)
+; std/number_string.lpc:34
+0093:  02 02 C2 C6               F_PUSH                             ; push local 2, local 6
+0097:  6C                        +                                  ; 
+0098:  6B 02                     (void)assign_local                 ; LV2
+009a:  19 06 00                  branch                             ; 0006 (00a1)
+; std/number_string.lpc:39
+009d:  40 06                     local                              ; LV6
+009f:  6B 02                     (void)assign_local                 ; LV2
+; std/number_string.lpc:41
+00a1:  0E 0A                     short_string                       ; "%s%s"
+00a3:  3D 02                     transfer_local                     ; LV2
+00a5:  3D 03                     transfer_local                     ; LV3
+00a7:  07 1C 01 03               F_EFUNV                            ; EFUN: sprintf(284)
+00ab:  2F                        return                             ; 
+00ac:  30                        return_zero                        ; 
+; std/number_string.lpc:44
+
+;;;  *** Line Number Info ***
+
+absolute line -> (file, line) table:
+0 lines from 1 [std/number_string.lpc]
+11 lines from 2 [include/globals.h]
+32 lines from 3 [include/tests.h]
+25 lines from 2 [include/globals.h]
+9 lines from 1 [std/number_string.lpc]
+17 lines from 4 [include/lpctypes.h]
+37 lines from 1 [std/number_string.lpc]
+
+address -> absolute line table:
+0000-0007: 97
+0008-0025: 100
+0026-002a: 101
+002b-0031: 104
+0032-0042: 106
+0043-004c: 107
+004d-0053: 109
+0054-005e: 110
+005f-0068: 111
+0069-006c: 113
+006d-0073: 117
+0074-007f: 120
+0080-0087: 121
+0088-0092: 119
+0093-009c: 124
+009d-00a0: 126
+00a1-00ac: 129
+Trace duration: 14818.977000 us, dumping 103 events to trace_lpcc.json in separate thread.
+[thread 140143547643584d]: Dump trace successfully to file trace_lpcc.json, cost 0 ms.

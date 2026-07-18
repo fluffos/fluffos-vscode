@@ -1,0 +1,803 @@
+Processing config file: etc/config.test
+maximum local variables: invalid new value, resetting to default.
+New Debug log location: "log/debug.log".
+Execution root: ./
+Initializing internal stuff ....
+Event backend in use: epoll
+Loading simul_efun file : /single/simul_efun
+/std/base64.lpc:53:1: warning: Unused local variable 'p'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/base64.lpc:53:1: warning: Unused local variable 'rlen'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'parts'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'part'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+Loading master file: /single/master
+NAME: /single/tests/operators/switch.lpc
+INHERITS:
+      name                    fio    vio
+      ----------------        ---    ---
+FUNCTIONS:
+      name                      offset  mods   flags   fio  vio # locals  # args # def args
+      ------------------------- ------  ----  -------  ---  --- --------  ------ ----------
+   0: switch5                        0   +--  --s----                   0       1          0 
+   1: switch4                        1   +--  --s----                   0       1          0 
+   2: switch2                        2   +--  --s----                   0       1          0 
+   3: switch1                        3   +--  --s----                   0       1          0 
+   4: switch3                        4   +--  --s----                   0       1          0 
+   5: do_tests                       5   +--  --s----                   5       0          0 
+
+;;; single/tests/operators/switch.lpc
+
+Globals:
+VARIABLES defined:
+STRINGS:
+   0: single/tests/operators/switch.lp
+   1: include/globals.h
+   2: include/tests.h
+   3: a
+   4: obj
+   5: cof
+   6: dsu
+   7: b
+   8: /single/master
+   9: clear_last_error
+  10: /single/tests/operators/switch.l
+  11: aasdfk
+  12: bcd
+  13: whatever
+DISASSEMBLY:
+
+;; Function: public int switch1(string)
+0000:  3D 00                     transfer_local                     ; LV0
+0002: switch
+      type: 2f table: 001e-005a deflt: 000e
+000a:  10                        const1                             ; 
+000b:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:3
+000c:  10                        const1                             ; 
+000d:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:5
+000e:  08 E7 03                  F_SHORT_INT                        ; short 999
+0011:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:7
+0012:  0B 03                     byte                               ; 3
+0014:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:10
+0015:  0B 02                     byte                               ; 2
+0017:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:12
+0018:  0B 0A                     byte                               ; 10
+001a:  2F                        return                             ; 
+001b:  19 3E 00                  branch                             ; 003e (005a)
+; single/tests/operators/switch.lpc:14
+      switch table (for 0002)
+	(nil)	0018
+	"dsu"	0012
+	"a"	000a
+	"cof"	0012
+	"b"	0015
+	"obj"	000c
+; single/tests/operators/switch.lpc:2
+005a:  30                        return_zero                        ; 
+; single/tests/operators/switch.lpc:14
+
+;; Function: public int switch2(int)
+005b:  3D 00                     transfer_local                     ; LV0
+005d: switch
+      type: f3 table: 0087-00f5 deflt: 0071
+0065:  30                        return_zero                        ; 
+; single/tests/operators/switch.lpc:21
+0066:  10                        const1                             ; 
+0067:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:23
+0068:  0B 07                     byte                               ; 7
+006a:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:25
+006b:  0B 03                     byte                               ; 3
+006d:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:28
+006e:  0B 02                     byte                               ; 2
+0070:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:30
+0071:  08 E7 03                  F_SHORT_INT                        ; short 999
+0074:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:32
+0075:  0B 05                     byte                               ; 5
+0077:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:34
+0078:  0B 04                     byte                               ; 4
+007a:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:36
+007b:  0B 06                     byte                               ; 6
+007d:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:38
+007e:  0B 08                     byte                               ; 8
+0080:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:40
+0081:  0B 09                     byte                               ; 9
+0083:  2F                        return                             ; 
+0084:  19 70 00                  branch                             ; 0070 (00f5)
+; single/tests/operators/switch.lpc:42
+      switch table (for 005d)
+	0xfffffffffffe1dc0	007b
+	0xffffffffffffffff	0068
+	(nil)	0065
+	0x1 	0066
+	0xa 	006e
+	0x1e	006b
+	0x28	006b
+	0x7ffffffe	0075
+	0x7fffffffffffffee	0078
+	0x7ffffffffffffff5	0081
+	0x7fffffffffffffff	007e
+; single/tests/operators/switch.lpc:20
+00f5:  30                        return_zero                        ; 
+; single/tests/operators/switch.lpc:42
+
+;; Function: public int switch3(int)
+00f6:  3D 00                     transfer_local                     ; LV0
+00f8: switch
+      type: f3 table: 010d-015d deflt: 010a
+0100:  30                        return_zero                        ; 
+; single/tests/operators/switch.lpc:49
+0101:  0B 02                     byte                               ; 2
+0103:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:51
+0104:  10                        const1                             ; 
+0105:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:53
+0106:  08 E7 03                  F_SHORT_INT                        ; short 999
+0109:  2F                        return                             ; 
+010a:  19 52 00                  branch                             ; 0052 (015d)
+; single/tests/operators/switch.lpc:55
+      switch table (for 00f8)
+	(nil)	<range start>
+	(nil)	0100
+	0x1 	<range start>
+	0xa 	0104
+	0xb 	<range start>
+	0x14	0101
+	0x15	<range start>
+	0x7fffffffffffffff	0106
+; single/tests/operators/switch.lpc:48
+015d:  30                        return_zero                        ; 
+; single/tests/operators/switch.lpc:55
+
+;; Function: public int switch4(int)
+015e:  3D 00                     transfer_local                     ; LV0
+0160: switch
+      type: f1 table: 0171-0185 deflt: 016a
+0168:  10                        const1                             ; 
+0169:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:62
+016a:  08 E7 03                  F_SHORT_INT                        ; short 999
+016d:  2F                        return                             ; 
+016e:  19 16 00                  branch                             ; 0016 (0185)
+; single/tests/operators/switch.lpc:64
+      switch table (for 0160)
+	0x8000000000000000	<range start>
+	0x14	0168
+; single/tests/operators/switch.lpc:61
+0185:  30                        return_zero                        ; 
+; single/tests/operators/switch.lpc:64
+
+;; Function: public int switch5(int)
+0186:  3D 00                     transfer_local                     ; LV0
+0188: switch
+      type: fe table: 0198-01a4 deflt: 0195
+0190:  10                        const1                             ; 
+0191:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:72
+0192:  0B 02                     byte                               ; 2
+0194:  2F                        return                             ; 
+0195:  19 0E 00                  branch                             ; 000e (01a4)
+; single/tests/operators/switch.lpc:74
+      switch table (for 0188)
+	 0: 0190
+	 1: 0192
+	minval = 1
+; single/tests/operators/switch.lpc:71
+01a4:  08 E7 03                  F_SHORT_INT                        ; short 999
+01a7:  2F                        return                             ; 
+; single/tests/operators/switch.lpc:74
+
+;; Function: public void do_tests()
+01a8:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+01ac:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+01b0:  25 03 00                  ||                                 ; 0003 (01b4)
+01b3:  10                        const1                             ; 
+01b4:  01                        pop                                ; 
+01b5:  02 02 41 03               F_PUSH                             ; push number 1, string 3
+01b9:  2D 03 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch1, pushed_args:1
+01bd:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+01bf:  0B 52                     byte                               ; 82
+01c1:  6C                        +                                  ; 
+01c2:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+01c6:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:82
+01c7:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+01cb:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+01cf:  25 03 00                  ||                                 ; 0003 (01d3)
+01d2:  10                        const1                             ; 
+01d3:  01                        pop                                ; 
+01d4:  02 02 41 04               F_PUSH                             ; push number 1, string 4
+01d8:  2D 03 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch1, pushed_args:1
+01dc:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+01de:  0B 53                     byte                               ; 83
+01e0:  6C                        +                                  ; 
+01e1:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+01e5:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:83
+01e6:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+01ea:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+01ee:  25 03 00                  ||                                 ; 0003 (01f2)
+01f1:  10                        const1                             ; 
+01f2:  01                        pop                                ; 
+01f3:  02 02 42 07               F_PUSH                             ; push number 2, string 7
+01f7:  2D 03 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch1, pushed_args:1
+01fb:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+01fd:  0B 54                     byte                               ; 84
+01ff:  6C                        +                                  ; 
+0200:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0204:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:84
+0205:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0209:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+020d:  25 03 00                  ||                                 ; 0003 (0211)
+0210:  10                        const1                             ; 
+0211:  01                        pop                                ; 
+0212:  02 02 43 05               F_PUSH                             ; push number 3, string 5
+0216:  2D 03 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch1, pushed_args:1
+021a:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+021c:  0B 55                     byte                               ; 85
+021e:  6C                        +                                  ; 
+021f:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0223:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:85
+0224:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0228:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+022c:  25 03 00                  ||                                 ; 0003 (0230)
+022f:  10                        const1                             ; 
+0230:  01                        pop                                ; 
+0231:  02 02 43 06               F_PUSH                             ; push number 3, string 6
+0235:  2D 03 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch1, pushed_args:1
+0239:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+023b:  0B 56                     byte                               ; 86
+023d:  6C                        +                                  ; 
+023e:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0242:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:86
+0243:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0247:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+024b:  25 03 00                  ||                                 ; 0003 (024f)
+024e:  10                        const1                             ; 
+024f:  01                        pop                                ; 
+0250:  08 E7 03                  F_SHORT_INT                        ; short 999
+0253:  0E 0B                     short_string                       ; "aasdfk"
+0255:  2D 03 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch1, pushed_args:1
+0259:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+025b:  0B 57                     byte                               ; 87
+025d:  6C                        +                                  ; 
+025e:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0262:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:87
+0263:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0267:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+026b:  25 03 00                  ||                                 ; 0003 (026f)
+026e:  10                        const1                             ; 
+026f:  01                        pop                                ; 
+0270:  08 E7 03                  F_SHORT_INT                        ; short 999
+0273:  0E 0C                     short_string                       ; "bcd"
+0275:  2D 03 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch1, pushed_args:1
+0279:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+027b:  0B 58                     byte                               ; 88
+027d:  6C                        +                                  ; 
+027e:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0282:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:88
+0283:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0287:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+028b:  25 03 00                  ||                                 ; 0003 (028f)
+028e:  10                        const1                             ; 
+028f:  01                        pop                                ; 
+0290:  08 E7 03                  F_SHORT_INT                        ; short 999
+0293:  0E 0D                     short_string                       ; "whatever"
+0295:  2D 03 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch1, pushed_args:1
+0299:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+029b:  0B 59                     byte                               ; 89
+029d:  6C                        +                                  ; 
+029e:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+02a2:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:89
+02a3:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+02a7:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+02ab:  25 03 00                  ||                                 ; 0003 (02af)
+02ae:  10                        const1                             ; 
+02af:  01                        pop                                ; 
+02b0:  02 02 4A 40               F_PUSH                             ; push number 10, number 0
+02b4:  2D 03 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch1, pushed_args:1
+02b8:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+02ba:  0B 5A                     byte                               ; 90
+02bc:  6C                        +                                  ; 
+02bd:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+02c1:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:90
+02c2:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+02c6:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+02ca:  25 03 00                  ||                                 ; 0003 (02ce)
+02cd:  10                        const1                             ; 
+02ce:  01                        pop                                ; 
+02cf:  02 02 40 40               F_PUSH                             ; push number 0, number 0
+02d3:  2D 02 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch2, pushed_args:1
+02d7:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+02d9:  0B 5D                     byte                               ; 93
+02db:  6C                        +                                  ; 
+02dc:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+02e0:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:93
+02e1:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+02e5:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+02e9:  25 03 00                  ||                                 ; 0003 (02ed)
+02ec:  10                        const1                             ; 
+02ed:  01                        pop                                ; 
+02ee:  02 02 41 41               F_PUSH                             ; push number 1, number 1
+02f2:  2D 02 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch2, pushed_args:1
+02f6:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+02f8:  0B 5E                     byte                               ; 94
+02fa:  6C                        +                                  ; 
+02fb:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+02ff:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:94
+0300:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0304:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0308:  25 03 00                  ||                                 ; 0003 (030c)
+030b:  10                        const1                             ; 
+030c:  01                        pop                                ; 
+030d:  02 02 42 4A               F_PUSH                             ; push number 2, number 10
+0311:  2D 02 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch2, pushed_args:1
+0315:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+0317:  0B 5F                     byte                               ; 95
+0319:  6C                        +                                  ; 
+031a:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+031e:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:95
+031f:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0323:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0327:  25 03 00                  ||                                 ; 0003 (032b)
+032a:  10                        const1                             ; 
+032b:  01                        pop                                ; 
+032c:  02 02 43 5E               F_PUSH                             ; push number 3, number 30
+0330:  2D 02 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch2, pushed_args:1
+0334:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+0336:  0B 60                     byte                               ; 96
+0338:  6C                        +                                  ; 
+0339:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+033d:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:96
+033e:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0342:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0346:  25 03 00                  ||                                 ; 0003 (034a)
+0349:  10                        const1                             ; 
+034a:  01                        pop                                ; 
+034b:  02 02 43 68               F_PUSH                             ; push number 3, number 40
+034f:  2D 02 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch2, pushed_args:1
+0353:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+0355:  0B 61                     byte                               ; 97
+0357:  6C                        +                                  ; 
+0358:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+035c:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:97
+035d:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0361:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0365:  25 03 00                  ||                                 ; 0003 (0369)
+0368:  10                        const1                             ; 
+0369:  01                        pop                                ; 
+036a:  0B 04                     byte                               ; 4
+036c:  09 EE FF FF FF FF FF FF 7F  number                             ; 9223372036854775790
+0375:  2D 02 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch2, pushed_args:1
+0379:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+037b:  0B 62                     byte                               ; 98
+037d:  6C                        +                                  ; 
+037e:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0382:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:98
+0383:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0387:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+038b:  25 03 00                  ||                                 ; 0003 (038f)
+038e:  10                        const1                             ; 
+038f:  01                        pop                                ; 
+0390:  0B 05                     byte                               ; 5
+0392:  09 FE FF FF 7F 00 00 00 00  number                             ; 2147483646
+039b:  2D 02 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch2, pushed_args:1
+039f:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+03a1:  0B 63                     byte                               ; 99
+03a3:  6C                        +                                  ; 
+03a4:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+03a8:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:99
+03a9:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+03ad:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+03b1:  25 03 00                  ||                                 ; 0003 (03b5)
+03b4:  10                        const1                             ; 
+03b5:  01                        pop                                ; 
+03b6:  0B 06                     byte                               ; 6
+03b8:  09 C0 1D FE FF FF FF FF FF  number                             ; -123456
+03c1:  2D 02 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch2, pushed_args:1
+03c5:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+03c7:  0B 64                     byte                               ; 100
+03c9:  6C                        +                                  ; 
+03ca:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+03ce:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:100
+03cf:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+03d3:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+03d7:  25 03 00                  ||                                 ; 0003 (03db)
+03da:  10                        const1                             ; 
+03db:  01                        pop                                ; 
+03dc:  0B 07                     byte                               ; 7
+03de:  0C 01                     -byte                              ; -1
+03e0:  2D 02 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch2, pushed_args:1
+03e4:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+03e6:  0B 65                     byte                               ; 101
+03e8:  6C                        +                                  ; 
+03e9:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+03ed:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:101
+03ee:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+03f2:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+03f6:  25 03 00                  ||                                 ; 0003 (03fa)
+03f9:  10                        const1                             ; 
+03fa:  01                        pop                                ; 
+03fb:  0B 08                     byte                               ; 8
+03fd:  09 FF FF FF FF FF FF FF 7F  number                             ; 9223372036854775807
+0406:  2D 02 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch2, pushed_args:1
+040a:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+040c:  0B 66                     byte                               ; 102
+040e:  6C                        +                                  ; 
+040f:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0413:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:102
+0414:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0418:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+041c:  25 03 00                  ||                                 ; 0003 (0420)
+041f:  10                        const1                             ; 
+0420:  01                        pop                                ; 
+0421:  0B 09                     byte                               ; 9
+0423:  09 F5 FF FF FF FF FF FF 7F  number                             ; 9223372036854775797
+042c:  2D 02 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch2, pushed_args:1
+0430:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+0432:  0B 67                     byte                               ; 103
+0434:  6C                        +                                  ; 
+0435:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0439:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:103
+043a:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+043e:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0442:  25 03 00                  ||                                 ; 0003 (0446)
+0445:  10                        const1                             ; 
+0446:  01                        pop                                ; 
+0447:  08 E7 03                  F_SHORT_INT                        ; short 999
+044a:  09 F4 E3 01 00 00 00 00 00  number                             ; 123892
+0453:  2D 02 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch2, pushed_args:1
+0457:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+0459:  0B 68                     byte                               ; 104
+045b:  6C                        +                                  ; 
+045c:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0460:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:104
+0461:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0465:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0469:  25 03 00                  ||                                 ; 0003 (046d)
+046c:  10                        const1                             ; 
+046d:  01                        pop                                ; 
+046e:  02 02 40 40               F_PUSH                             ; push number 0, number 0
+0472:  2D 04 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch3, pushed_args:1
+0476:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+0478:  0B 6B                     byte                               ; 107
+047a:  6C                        +                                  ; 
+047b:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+047f:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:107
+0480:  10                        const1                             ; 
+0481:  6B 00                     (void)assign_local                 ; LV0
+0483:  19 23 00                  branch                             ; 0023 (04a7)
+; single/tests/operators/switch.lpc:108
+0486:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+048a:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+048e:  25 03 00                  ||                                 ; 0003 (0492)
+0491:  10                        const1                             ; 
+0492:  01                        pop                                ; 
+0493:  02 02 41 C0               F_PUSH                             ; push number 1, local 0
+0497:  2D 04 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch3, pushed_args:1
+049b:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+049d:  0B 6D                     byte                               ; 109
+049f:  6C                        +                                  ; 
+04a0:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+04a4:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:109
+04a5:  23 00                     loop_incr                          ; LV0
+; single/tests/operators/switch.lpc:110
+04a7:  02 02 C0 4A               F_PUSH                             ; push local 0, number 10
+04ab:  33                        <=                                 ; 
+04ac:  1B 27 00                  bbranch_when_non_zero              ; 0027 (0486)
+; single/tests/operators/switch.lpc:108
+04af:  0B 0B                     byte                               ; 11
+04b1:  6B 01                     (void)assign_local                 ; LV1
+04b3:  19 23 00                  branch                             ; 0023 (04d7)
+; single/tests/operators/switch.lpc:111
+04b6:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+04ba:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+04be:  25 03 00                  ||                                 ; 0003 (04c2)
+04c1:  10                        const1                             ; 
+04c2:  01                        pop                                ; 
+04c3:  02 02 42 C1               F_PUSH                             ; push number 2, local 1
+04c7:  2D 04 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch3, pushed_args:1
+04cb:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+04cd:  0B 70                     byte                               ; 112
+04cf:  6C                        +                                  ; 
+04d0:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+04d4:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:112
+04d5:  23 01                     loop_incr                          ; LV1
+; single/tests/operators/switch.lpc:113
+04d7:  02 02 C1 54               F_PUSH                             ; push local 1, number 20
+04db:  33                        <=                                 ; 
+04dc:  1B 27 00                  bbranch_when_non_zero              ; 0027 (04b6)
+; single/tests/operators/switch.lpc:111
+04df:  0B 15                     byte                               ; 21
+04e1:  6B 02                     (void)assign_local                 ; LV2
+04e3:  19 24 00                  branch                             ; 0024 (0508)
+; single/tests/operators/switch.lpc:114
+04e6:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+04ea:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+04ee:  25 03 00                  ||                                 ; 0003 (04f2)
+04f1:  10                        const1                             ; 
+04f2:  01                        pop                                ; 
+04f3:  08 E7 03                  F_SHORT_INT                        ; short 999
+04f6:  40 02                     local                              ; LV2
+04f8:  2D 04 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch3, pushed_args:1
+04fc:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+04fe:  0B 73                     byte                               ; 115
+0500:  6C                        +                                  ; 
+0501:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0505:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:115
+0506:  23 02                     loop_incr                          ; LV2
+; single/tests/operators/switch.lpc:116
+0508:  40 02                     local                              ; LV2
+050a:  0B 64                     byte                               ; 100
+050c:  33                        <=                                 ; 
+050d:  1B 28 00                  bbranch_when_non_zero              ; 0028 (04e6)
+; single/tests/operators/switch.lpc:114
+0510:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0514:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0518:  25 03 00                  ||                                 ; 0003 (051c)
+051b:  10                        const1                             ; 
+051c:  01                        pop                                ; 
+051d:  08 E7 03                  F_SHORT_INT                        ; short 999
+0520:  09 FF FF FF FF FF FF FF 7F  number                             ; 9223372036854775807
+0529:  2D 04 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch3, pushed_args:1
+052d:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+052f:  0B 75                     byte                               ; 117
+0531:  6C                        +                                  ; 
+0532:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0536:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:117
+0537:  0C 14                     -byte                              ; -20
+0539:  6B 03                     (void)assign_local                 ; LV3
+053b:  19 23 00                  branch                             ; 0023 (055f)
+; single/tests/operators/switch.lpc:120
+053e:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0542:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0546:  25 03 00                  ||                                 ; 0003 (054a)
+0549:  10                        const1                             ; 
+054a:  01                        pop                                ; 
+054b:  02 02 41 C3               F_PUSH                             ; push number 1, local 3
+054f:  2D 01 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch4, pushed_args:1
+0553:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+0555:  0B 79                     byte                               ; 121
+0557:  6C                        +                                  ; 
+0558:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+055c:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:121
+055d:  23 03                     loop_incr                          ; LV3
+; single/tests/operators/switch.lpc:122
+055f:  02 02 C3 54               F_PUSH                             ; push local 3, number 20
+0563:  33                        <=                                 ; 
+0564:  1B 27 00                  bbranch_when_non_zero              ; 0027 (053e)
+; single/tests/operators/switch.lpc:120
+0567:  0B 15                     byte                               ; 21
+0569:  6B 04                     (void)assign_local                 ; LV4
+056b:  19 24 00                  branch                             ; 0024 (0590)
+; single/tests/operators/switch.lpc:123
+056e:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0572:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0576:  25 03 00                  ||                                 ; 0003 (057a)
+0579:  10                        const1                             ; 
+057a:  01                        pop                                ; 
+057b:  08 E7 03                  F_SHORT_INT                        ; short 999
+057e:  40 04                     local                              ; LV4
+0580:  2D 01 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch4, pushed_args:1
+0584:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+0586:  0B 7C                     byte                               ; 124
+0588:  6C                        +                                  ; 
+0589:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+058d:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:124
+058e:  23 04                     loop_incr                          ; LV4
+; single/tests/operators/switch.lpc:125
+0590:  40 04                     local                              ; LV4
+0592:  0B 64                     byte                               ; 100
+0594:  33                        <=                                 ; 
+0595:  1B 28 00                  bbranch_when_non_zero              ; 0028 (056e)
+; single/tests/operators/switch.lpc:123
+0598:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+059c:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+05a0:  25 03 00                  ||                                 ; 0003 (05a4)
+05a3:  10                        const1                             ; 
+05a4:  01                        pop                                ; 
+05a5:  08 E7 03                  F_SHORT_INT                        ; short 999
+05a8:  09 FF FF FF FF FF FF FF 7F  number                             ; 9223372036854775807
+05b1:  2D 01 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch4, pushed_args:1
+05b5:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+05b7:  0B 7E                     byte                               ; 126
+05b9:  6C                        +                                  ; 
+05ba:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+05be:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:126
+05bf:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+05c3:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+05c7:  25 03 00                  ||                                 ; 0003 (05cb)
+05ca:  10                        const1                             ; 
+05cb:  01                        pop                                ; 
+05cc:  02 02 41 41               F_PUSH                             ; push number 1, number 1
+05d0:  2D 00 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch5, pushed_args:1
+05d4:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+05d6:  0B 81                     byte                               ; 129
+05d8:  6C                        +                                  ; 
+05d9:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+05dd:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:129
+05de:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+05e2:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+05e6:  25 03 00                  ||                                 ; 0003 (05ea)
+05e9:  10                        const1                             ; 
+05ea:  01                        pop                                ; 
+05eb:  02 02 42 42               F_PUSH                             ; push number 2, number 2
+05ef:  2D 00 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch5, pushed_args:1
+05f3:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+05f5:  0B 82                     byte                               ; 130
+05f7:  6C                        +                                  ; 
+05f8:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+05fc:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:130
+05fd:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0601:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0605:  25 03 00                  ||                                 ; 0003 (0609)
+0608:  10                        const1                             ; 
+0609:  01                        pop                                ; 
+060a:  08 E7 03                  F_SHORT_INT                        ; short 999
+060d:  0C 01                     -byte                              ; -1
+060f:  2D 00 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch5, pushed_args:1
+0613:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+0615:  0B 83                     byte                               ; 131
+0617:  6C                        +                                  ; 
+0618:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+061c:  01                        pop                                ; 
+; single/tests/operators/switch.lpc:131
+061d:  02 02 08 09               F_PUSH                             ; push string 8, string 9
+0621:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0625:  25 03 00                  ||                                 ; 0003 (0629)
+0628:  10                        const1                             ; 
+0629:  01                        pop                                ; 
+062a:  08 E7 03                  F_SHORT_INT                        ; short 999
+062d:  08 D2 04                  F_SHORT_INT                        ; short 1234
+0630:  2D 00 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; switch5, pushed_args:1
+0634:  0E 0A                     short_string                       ; "/single/tests/operators/switc"
+0636:  0B 84                     byte                               ; 132
+0638:  6C                        +                                  ; 
+0639:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+063d:  01                        pop                                ; 
+063e:  30                        return_zero                        ; 
+; single/tests/operators/switch.lpc:132
+
+;;;  *** Line Number Info ***
+
+absolute line -> (file, line) table:
+0 lines from 1 [single/tests/operators/switch.lpc]
+11 lines from 2 [include/globals.h]
+32 lines from 3 [include/tests.h]
+25 lines from 2 [include/globals.h]
+134 lines from 1 [single/tests/operators/switch.lpc]
+
+address -> absolute line table:
+0000-0009: 70
+000a-000b: 71
+000c-000d: 73
+000e-0011: 75
+0012-0014: 78
+0015-0017: 80
+0018-005a: 82
+005b-0064: 88
+0065-0065: 89
+0066-0067: 91
+0068-006a: 93
+006b-006d: 96
+006e-0070: 98
+0071-0074: 100
+0075-0077: 102
+0078-007a: 104
+007b-007d: 106
+007e-0080: 108
+0081-00f5: 110
+00f6-00ff: 116
+0100-0100: 117
+0101-0103: 119
+0104-0105: 121
+0106-015d: 123
+015e-0167: 129
+0168-0169: 130
+016a-0185: 132
+0186-018f: 139
+0190-0191: 140
+0192-01a7: 142
+01a8-01c6: 150
+01c7-01e5: 151
+01e6-0204: 152
+0205-0223: 153
+0224-0242: 154
+0243-0262: 155
+0263-0282: 156
+0283-02a2: 157
+02a3-02c1: 158
+02c2-02e0: 161
+02e1-02ff: 162
+0300-031e: 163
+031f-033d: 164
+033e-035c: 165
+035d-0382: 166
+0383-03a8: 167
+03a9-03ce: 168
+03cf-03ed: 169
+03ee-0413: 170
+0414-0439: 171
+043a-0460: 172
+0461-047f: 175
+0480-0485: 176
+0486-04a4: 177
+04a5-04a6: 178
+04a7-04ae: 176
+04af-04b5: 179
+04b6-04d4: 180
+04d5-04d6: 181
+04d7-04de: 179
+04df-04e5: 182
+04e6-0505: 183
+0506-0507: 184
+0508-050f: 182
+0510-0536: 185
+0537-053d: 188
+053e-055c: 189
+055d-055e: 190
+055f-0566: 188
+0567-056d: 191
+056e-058d: 192
+058e-058f: 193
+0590-0597: 191
+0598-05be: 194
+05bf-05dd: 197
+05de-05fc: 198
+05fd-061c: 199
+061d-063e: 200
+Trace duration: 19032.423000 us, dumping 101 events to trace_lpcc.json in separate thread.
+[thread 140312794101440d]: Dump trace successfully to file trace_lpcc.json, cost 0 ms.

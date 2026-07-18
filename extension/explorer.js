@@ -392,7 +392,9 @@ function webviewHtml(webview) {
     if (special) {
       inner = special.html;
     } else {
-      inner = '<span class="lbl' + (isLeaf ? ' atom' : '') + '">' + esc(node.label || '()') +
+      const dec = ctxInfo.refs && decorateLabel(node.label || '', ctxInfo.refs);
+      inner = '<span class="lbl' + (isLeaf ? ' atom' : '') + '">' +
+        (dec !== null && dec !== undefined ? dec : esc(node.label || '()')) +
         lineBadge(node) + '</span>';
     }
     let html = '<li><span class="astnode' + (sel ? ' sel' : '') + '" data-p="' + path.join('.') + '">' +
@@ -417,10 +419,34 @@ function webviewHtml(webview) {
     return node;
   }
 
+  // Reference decoration: constants show their VALUE (string literals via
+  // the string table), variable/function references show idx AND name
+  // (globals via the VARIABLES table, calls via the FUNCTIONS table).
+  function refMaps() {
+    const bc = model.lpcc.bytecode;
+    const globals = new Map(), fns = new Map();
+    if (bc) {
+      for (const g of bc.globals) globals.set(g.index, g.name);
+      for (const v of bc.variables) if (!globals.has(v.index)) globals.set(v.index, v.decl);
+      for (const f of bc.functionsTable) fns.set(f.index, f.name);
+    }
+    return { globals, fns };
+  }
+
+  function decorateLabel(label, refs) {
+    let m = /^(global|global_lvalue) (\d+)$/.exec(label);
+    if (m && refs.globals.has(+m[2])) return label + ' <span class="muted">(' + esc(refs.globals.get(+m[2])) + ')</span>';
+    m = /^F_CALL_FUNCTION_BY_ADDRESS (\d+)( |$)/.exec(label);
+    if (m && refs.fns.has(+m[1])) return label.replace(/^F_CALL_FUNCTION_BY_ADDRESS (\d+)/, 'call ' + esc(refs.fns.get(+m[1])) + '($1)');
+    m = /^(local|local_lvalue|transfer_local|loop_incr) (\d+)/.exec(label);
+    if (m) return label + ' <span class="muted">LV' + m[2] + '</span>';
+    return null;
+  }
+
   function renderAst(el) {
     if (!model.lpcc.available) { el.innerHTML = lpccHint('the AST view'); return; }
     if (!model.lpcc.ast.length) { el.innerHTML = '<div class="hint">No AST captured — check for compile errors below or hit refresh.</div>'; return; }
-    const ctxInfo = { strings: stringsTable() };
+    const ctxInfo = { strings: stringsTable(), refs: refMaps() };
     const fnNames = (model.outline.functions || []).map((f) => f.name);
     let html = '<div id="ast-wrap"><div id="ast-tree">';
     model.lpcc.ast.forEach((sec, si) => {
@@ -561,6 +587,9 @@ function webviewHtml(webview) {
     const bc = bcMode === 'O0' ? (model.lpcc.bytecodeO0 || model.lpcc.bytecode) : model.lpcc.bytecode;
     if (!bc) { el.innerHTML = '<div class="hint">No bytecode captured — the file may not compile; see Problems.</div>'; return; }
     const outlineByName = new Map((model.outline.functions || []).map((f) => [f.name, f]));
+    const programs = bc.programs && bc.programs.length ? bc.programs
+      : [{ file: bc.name, functions: bc.functions, functionsTable: bc.functionsTable,
+           variables: bc.variables, strings: bc.strings }];
     let html = '<div id="bc-bar"><strong>' + esc(bc.name || model.file) + '</strong>' +
       '<label><input type="radio" name="bcmode" value="opt"' + (bcMode === 'opt' ? ' checked' : '') +
       '> optimized</label>' +
@@ -571,13 +600,28 @@ function webviewHtml(webview) {
     html += '<details><summary>Program tables</summary>' +
       '<h4>Functions</h4><table>' + bc.functionsTable.map((f) =>
         '<tr><td class="muted">' + f.index + '</td><td>' + esc(f.name) + '</td></tr>').join('') + '</table>' +
-      '<h4>Variables</h4><table>' + bc.variables.map((v) =>
-        '<tr><td class="muted">' + v.index + '</td><td>' + esc(v.decl) + '</td></tr>').join('') + '</table>' +
-      '<h4>Strings</h4><table>' + bc.strings.map((s) =>
-        '<tr><td class="muted">' + s.index + '</td><td>' + esc(s.text) + '</td></tr>').join('') + '</table>' +
-      '</details>';
-    for (const fn of bc.functions) {
-      const o = outlineByName.get(fn.name);
+      (programs.map((p) =>
+        '<h4>' + esc(p.file || '') + '</h4>' +
+        '<h5>Variables</h5><table>' + p.variables.map((v) =>
+          '<tr><td class="muted">' + v.index + '</td><td>' + esc(v.decl) + '</td></tr>').join('') + '</table>' +
+        '<h5>Strings</h5><table>' + p.strings.map((s) =>
+          '<tr><td class="muted">' + s.index + '</td><td>' + esc(s.text) + '</td></tr>').join('') + '</table>'
+      ).join('')) + '</details>';
+    for (const p of programs) {
+      if (programs.length > 1) {
+        html += '<h3>' + esc(p.file || '') + (p !== programs[0] ? ' <span class="muted">(inherited)</span>' : '') + '</h3>';
+      }
+      html += renderProgramFns(p, outlineByName, p === programs[0]);
+    }
+    html += '<div id="bc-tip"></div>';
+    el.innerHTML = html;
+    wireBytecode(el);
+  }
+
+  function renderProgramFns(p, outlineByName, isTop) {
+    let html = '';
+    for (const fn of p.functions) {
+      const o = isTop ? outlineByName.get(fn.name) : null;
       html += '<details open><summary>' + esc(fn.signature) +
         (o ? ' <a class="link jump" data-l="' + o.line + '" data-c="' + o.col + '">go to source ↗</a>' : '') +
         '</summary><table><tr><th>addr</th><th>bytes</th><th>instruction</th><th>operands</th><th>src</th></tr>';
@@ -600,8 +644,10 @@ function webviewHtml(webview) {
       }
       html += '</table></details>';
     }
-    html += '<div id="bc-tip"></div>';
-    el.innerHTML = html;
+    return html;
+  }
+
+  function wireBytecode(el) {
     // mode toggle
     el.querySelectorAll('input[name=bcmode]').forEach((r) => r.onchange = () => {
       bcMode = r.value; render();

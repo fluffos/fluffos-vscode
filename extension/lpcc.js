@@ -254,15 +254,16 @@ function parseSexprs(text) {
 //   ;;;  *** Line Number Info ***  (address -> absolute line table)
 function parseBytecode(raw) {
   const lines = String(raw).split(/\r?\n/);
+  const newProgram = (file) => ({
+    file, globals: [], variables: [], strings: [], functions: [], addressLines: [],
+  });
   const model = {
     name: null,
-    functionsTable: [],   // {index, name}
-    globals: [],          // {index, name}
-    variables: [],        // {index, decl}
-    strings: [],          // {index, text}
-    functions: [],        // {signature, name, instructions: [...]}
-    addressLines: [],     // {from, to, absLine}
+    functionsTable: [],   // {index, name} (top program, runtime-indexed)
+    programs: [],         // one per ';;; <file>' section: top program first,
+                          // then each inherited program's dump
   };
+  let prog = null;        // current ';;; <file>' program section
 
   let section = null;
   let curFn = null;
@@ -279,6 +280,17 @@ function parseBytecode(raw) {
     if (model.name === null) continue; // boot noise before the payload
     if (/^Trace duration:|^\[thread /.test(l)) break;
 
+    // ';;; <file>' opens a per-program section (top program, then each
+    // inherited program's dump). NOT the ';;;  *** Line Number Info ***'
+    // banner, which stays within the current program.
+    if ((m = /^;;; ([^*\s].*)$/.exec(l))) {
+      flushPending(null, 0);
+      prog = newProgram(m[1].trim());
+      model.programs.push(prog);
+      curFn = null;
+      section = null;
+      continue;
+    }
     if (/^FUNCTIONS:/.test(l)) { section = 'functions'; continue; }
     if (/^Globals:/.test(l)) { section = 'globals'; continue; }
     if (/^VARIABLES defined:/.test(l)) { section = 'variables'; continue; }
@@ -291,15 +303,15 @@ function parseBytecode(raw) {
       continue;
     }
     if (section === 'globals') {
-      if ((m = /^\s*(\d+): (.*)$/.exec(l))) model.globals.push({ index: +m[1], name: m[2] });
+      if (prog && (m = /^\s*(\d+): (.*)$/.exec(l))) prog.globals.push({ index: +m[1], name: m[2] });
       continue;
     }
     if (section === 'variables') {
-      if ((m = /^\s*(\d+): (.*)$/.exec(l))) model.variables.push({ index: +m[1], decl: m[2] });
+      if (prog && (m = /^\s*(\d+): (.*)$/.exec(l))) prog.variables.push({ index: +m[1], decl: m[2] });
       continue;
     }
     if (section === 'strings') {
-      if ((m = /^\s*(\d+): (.*)$/.exec(l))) model.strings.push({ index: +m[1], text: m[2] });
+      if (prog && (m = /^\s*(\d+): (.*)$/.exec(l))) prog.strings.push({ index: +m[1], text: m[2] });
       continue;
     }
     if (section === 'disassembly') {
@@ -308,7 +320,7 @@ function parseBytecode(raw) {
         const sig = m[1];
         const nm = (/(?:^|[ *])([A-Za-z_#][A-Za-z0-9_#]*)\s*\(/.exec(sig) || [])[1] || sig;
         curFn = { signature: sig, name: nm, instructions: [] };
-        model.functions.push(curFn);
+        if (prog) prog.functions.push(curFn);
         continue;
       }
       if ((m = /^; (.+):(\d+)\s*$/.exec(l))) { flushPending(m[1], +m[2]); continue; }
@@ -333,12 +345,19 @@ function parseBytecode(raw) {
     }
     if (section === 'lineinfo') {
       if ((m = /^([0-9a-f]+)-([0-9a-f]+): (\d+)$/.exec(l))) {
-        model.addressLines.push({ from: m[1], to: m[2], absLine: +m[3] });
+        if (prog) prog.addressLines.push({ from: m[1], to: m[2], absLine: +m[3] });
       }
       continue;
     }
   }
   flushPending(null, 0);
+  // Compatibility aliases: the top program's tables and functions.
+  const top = model.programs[0] || newProgram(null);
+  model.globals = top.globals;
+  model.variables = top.variables;
+  model.strings = top.strings;
+  model.functions = top.functions;
+  model.addressLines = top.addressLines;
   return model;
 }
 
