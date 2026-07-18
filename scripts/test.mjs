@@ -135,6 +135,20 @@ check('lpcc bytecode: real switch testsuite file parses (6 fns incl. 450-ins do_
       psw.functions.length === 6 &&
       psw.functions.find((f) => f.name === 'do_tests').instructions.length > 400);
 
+const pfc = lpccSvc.parseBytecode(fixture('sample-firstclass.dis.txt'));
+const pfcO0 = lpccSvc.parseBytecode(fixture('sample-firstclass.disO0.txt'));
+check('lpcc bytecode: optimizer toggle yields genuinely different listings',
+      (() => { // add(): optimized uses transfer_local, -O0 a generic F_PUSH
+        const a = pfc.functions.find((f) => f.name === 'add');
+        const b = pfcO0.functions.find((f) => f.name === 'add');
+        return a && b && a.instructions.length === 4 && b.instructions.length === 3 &&
+               a.instructions[0].mnemonic === 'transfer_local' &&
+               b.instructions[0].mnemonic === 'F_PUSH';
+      })());
+check('lpcc bytecode: functionals/anon-func rows parse (firstclass file)',
+      pfc.functions.reduce((n, f) => n + f.instructions.filter((i) => !i.mnemonic).length, 0) === 0 &&
+      pfc.functions.some((f) => f.instructions.some((i) => i.comment.includes('functional'))));
+
 const pbcO0 = lpccSvc.parseBytecode(fixture('sample.disO0.txt'));
 check('lpcc bytecode -O0: parses as a distinct dump',
       pbcO0 && pbcO0.functions.length >= 2 && pbcO0.name === pbc.name);

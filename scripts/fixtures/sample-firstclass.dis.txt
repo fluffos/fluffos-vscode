@@ -1,0 +1,904 @@
+Processing config file: etc/config.test
+maximum local variables: invalid new value, resetting to default.
+New Debug log location: "log/debug.log".
+Execution root: ./
+Initializing internal stuff ....
+Event backend in use: epoll
+Loading simul_efun file : /single/simul_efun
+/std/base64.lpc:53:1: warning: Unused local variable 'p'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/base64.lpc:53:1: warning: Unused local variable 'rlen'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'parts'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'part'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+Loading master file: /single/master
+/single/tests/compiler/firstclass_functions.lpc:178:3: warning: Function pointer returning string constant is NOT a function call
+  178 | ;
+/include/tests.h:6:9: note: expanded from macro 'CLEAR_ERROR'
+    6 | #define CLEAR_ERROR (("/single/master"->clear_last_error() || 1))
+      |         ^
+/include/tests.h:19:9: note: expanded from macro 'ASSERT_EQ'
+   19 | #define ASSERT_EQ(x, y) do { CLEAR_ERROR; __assert_eq((x), (y), WHERE); } while (0)
+      |         ^
+NAME: /single/tests/compiler/firstclass_functions.lpc
+INHERITS:
+      name                    fio    vio
+      ----------------        ---    ---
+	inherit/tests.lpc         0      0
+FUNCTIONS:
+      name                      offset  mods   flags   fio  vio # locals  # args # def args
+      ------------------------- ------  ----  -------  ---  --- --------  ------ ----------
+   0: describe_test                  0   +--  i-s----    0   0
+   1: query_test_info                0   +--  i-s----    1   0
+   2: concat                         0   +--  --s----                   0       2          0 
+   3: test_function_in_mapping       1   +--  --s----                   1       0          0 
+   4: test_passing_to_higher_order       2   +--  --s----                   2       0          0 
+   5: test_forward_declaration       3   +--  --s----                   1       0          0 
+   6: multiply                       4   +--  --s----                   0       2          0 
+   7: do_tests                       5   +--  --s----                   0       0          0 
+   8: identity                       6   +--  --s----                   0       1          0 
+   9: double_array                   7   +--  --s----                   0       1          0 
+  10: test_basic_assignment          8   +--  --s----                   2       0          0 
+  11: test_function_in_array         9   +--  --s----                   1       0          0 
+  12: test_direct_invocation        10   +--  --s----                   2       0          0 
+  13: test_array_functions          11   +--  --s----                   3       0          0 
+  14: test_global_variable          12   +--  --s----                   0       0          0 
+  15: test_efun_pointer             13   +--  --s----                   1       0          0 
+  16: test_mixed_usage              14   +--  --s----                   2       0          0 
+  17: helper_function               15   +--  --s----                   0       1          0 
+  18: get_adder                     16   +--  --s----                   0       0          0 
+  19: test_return_function          17   +--  --s----                   1       0          0 
+  20: test_equivalence              18   +--  --s----                   2       0          0 
+  21: test_array                    19   +--  --s----                   1       0          0 
+  22: test_mapping                  20   +--  --s----                   1       0          0 
+  23: accept_mixed_function         21   ---  --s----                   1       1          0 
+  24: test_shadowing                22   +--  --s----                   0       0          0 
+  25: add                           23   +--  --s----                   0       2          0 
+
+;;; single/tests/compiler/firstclass_functions.lpc
+
+Globals:
+   0: test_desc
+   1: global_func
+VARIABLES defined:
+   1: public function global_func
+STRINGS:
+   0: single/tests/compiler/firstclass
+   1: include/globals.h
+   2: include/tests.h
+   3: /single/master
+   4: clear_last_error
+   5: /single/tests/compiler/firstclas
+   6: hello world
+   7: hello 
+   8: world
+   9: add
+  10: multiply
+  11: I'm a first class function!\n
+  12: I'm a first class string!\n
+DISASSEMBLY:
+
+;; Function: public int add(int,int)
+0000:  3D 00                     transfer_local                     ; LV0
+0002:  3D 01                     transfer_local                     ; LV1
+0004:  6C                        +                                  ; 
+0005:  2F                        return                             ; 
+; single/tests/compiler/firstclass_functions.lpc:5
+
+;; Function: public int multiply(int,int)
+0006:  3D 00                     transfer_local                     ; LV0
+0008:  3D 01                     transfer_local                     ; LV1
+000a:  6E                        *                                  ; 
+000b:  2F                        return                             ; 
+; single/tests/compiler/firstclass_functions.lpc:9
+
+;; Function: public string concat(string,string)
+000c:  3D 00                     transfer_local                     ; LV0
+000e:  3D 01                     transfer_local                     ; LV1
+0010:  6C                        +                                  ; 
+0011:  2F                        return                             ; 
+; single/tests/compiler/firstclass_functions.lpc:13
+
+;; Function: public int identity(int)
+0012:  3D 00                     transfer_local                     ; LV0
+0014:  2F                        return                             ; 
+; single/tests/compiler/firstclass_functions.lpc:17
+
+;; Function: public int * double_array(int *)
+0015:  3D 00                     transfer_local                     ; LV0
+0017:  0F                        const0                             ; 
+0018:  7A 05 01 06 00            (::)                               ; <functional, 1 args>: Code size: 6,
+001d:  02 02 C0 42               F_PUSH                             ; push local 0, number 2
+0021:  6E                        *                                  ; 
+0022:  2F                        return                             ; 
+0023:  07 40 01 02               F_EFUNV                            ; EFUN: map(320)
+0027:  2F                        return                             ; 
+; single/tests/compiler/firstclass_functions.lpc:22
+
+;; Function: public void test_basic_assignment()
+0028:  0F                        const0                             ; 
+0029:  7A 02 19 00               (::)                               ; <local_fun> add
+002d:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:33
+002f:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+0033:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0037:  25 03 00                  ||                                 ; 0003 (003b)
+003a:  10                        const1                             ; 
+003b:  01                        pop                                ; 
+003c:  02 04 48 C0 45 43         F_PUSH                             ; push number 8, local 0, number 5, number 3
+0042:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+0046:  02 02 05 62               F_PUSH                             ; push string 5, number 34
+004a:  6C                        +                                  ; 
+004b:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+004f:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:34
+0050:  0F                        const0                             ; 
+0051:  7A 02 06 00               (::)                               ; <local_fun> multiply
+0055:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:36
+0057:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+005b:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+005f:  25 03 00                  ||                                 ; 0003 (0063)
+0062:  10                        const1                             ; 
+0063:  01                        pop                                ; 
+0064:  02 04 4F C0 45 43         F_PUSH                             ; push number 15, local 0, number 5, number 3
+006a:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+006e:  02 02 05 65               F_PUSH                             ; push string 5, number 37
+0072:  6C                        +                                  ; 
+0073:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0077:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:37
+0078:  0F                        const0                             ; 
+0079:  7A 02 02 00               (::)                               ; <local_fun> concat
+007d:  6B 01                     (void)assign_local                 ; LV1
+; single/tests/compiler/firstclass_functions.lpc:40
+007f:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+0083:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0087:  25 03 00                  ||                                 ; 0003 (008b)
+008a:  10                        const1                             ; 
+008b:  01                        pop                                ; 
+008c:  02 04 06 C1 07 08         F_PUSH                             ; push string 6, local 1, string 7, string 8
+0092:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+0096:  02 02 05 69               F_PUSH                             ; push string 5, number 41
+009a:  6C                        +                                  ; 
+009b:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+009f:  01                        pop                                ; 
+00a0:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:41
+
+;; Function: public void test_function_in_array()
+00a1:  0F                        const0                             ; 
+00a2:  7A 02 19 00               (::)                               ; <local_fun> add
+00a6:  0F                        const0                             ; 
+00a7:  7A 02 06 00               (::)                               ; <local_fun> multiply
+00ab:  11 02 00                  aggregate                          ; 2
+00ae:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:45
+00b0:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+00b4:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+00b8:  25 03 00                  ||                                 ; 0003 (00bc)
+00bb:  10                        const1                             ; 
+00bc:  01                        pop                                ; 
+00bd:  02 03 47 40 C0            F_PUSH                             ; push number 7, number 0, local 0
+00c2:  4C                        index                              ; 
+00c3:  02 02 43 44               F_PUSH                             ; push number 3, number 4
+00c7:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+00cb:  02 02 05 6F               F_PUSH                             ; push string 5, number 47
+00cf:  6C                        +                                  ; 
+00d0:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+00d4:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:47
+00d5:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+00d9:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+00dd:  25 03 00                  ||                                 ; 0003 (00e1)
+00e0:  10                        const1                             ; 
+00e1:  01                        pop                                ; 
+00e2:  02 03 4C 41 C0            F_PUSH                             ; push number 12, number 1, local 0
+00e7:  4C                        index                              ; 
+00e8:  02 02 43 44               F_PUSH                             ; push number 3, number 4
+00ec:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+00f0:  02 02 05 70               F_PUSH                             ; push string 5, number 48
+00f4:  6C                        +                                  ; 
+00f5:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+00f9:  01                        pop                                ; 
+00fa:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:48
+
+;; Function: public void test_function_in_mapping()
+00fb:  0E 09                     short_string                       ; "add"
+; single/tests/compiler/firstclass_functions.lpc:55
+00fd:  0F                        const0                             ; 
+00fe:  7A 02 19 00               (::)                               ; <local_fun> add
+0102:  0E 0A                     short_string                       ; "multiply"
+; single/tests/compiler/firstclass_functions.lpc:53
+0104:  0F                        const0                             ; 
+0105:  7A 02 06 00               (::)                               ; <local_fun> multiply
+0109:  12 04 00                  aggregate_assoc                    ; 4
+010c:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:54
+010e:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+0112:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0116:  25 03 00                  ||                                 ; 0003 (011a)
+0119:  10                        const1                             ; 
+011a:  01                        pop                                ; 
+011b:  02 03 49 09 C0            F_PUSH                             ; push number 9, string 9, local 0
+0120:  4C                        index                              ; 
+0121:  02 02 44 45               F_PUSH                             ; push number 4, number 5
+0125:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+0129:  02 02 05 79               F_PUSH                             ; push string 5, number 57
+012d:  6C                        +                                  ; 
+012e:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0132:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:57
+0133:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+0137:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+013b:  25 03 00                  ||                                 ; 0003 (013f)
+013e:  10                        const1                             ; 
+013f:  01                        pop                                ; 
+0140:  02 03 54 0A C0            F_PUSH                             ; push number 20, string 10, local 0
+0145:  4C                        index                              ; 
+0146:  02 02 44 45               F_PUSH                             ; push number 4, number 5
+014a:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+014e:  02 02 05 7A               F_PUSH                             ; push string 5, number 58
+0152:  6C                        +                                  ; 
+0153:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0157:  01                        pop                                ; 
+0158:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:58
+
+;; Function: public void test_direct_invocation()
+0159:  0F                        const0                             ; 
+015a:  7A 02 19 00               (::)                               ; <local_fun> add
+015e:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:62
+0160:  0F                        const0                             ; 
+0161:  7A 02 06 00               (::)                               ; <local_fun> multiply
+0165:  6B 01                     (void)assign_local                 ; LV1
+; single/tests/compiler/firstclass_functions.lpc:63
+0167:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+016b:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+016f:  25 03 00                  ||                                 ; 0003 (0173)
+0172:  10                        const1                             ; 
+0173:  01                        pop                                ; 
+0174:  02 04 48 C0 45 43         F_PUSH                             ; push number 8, local 0, number 5, number 3
+017a:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+017e:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+0180:  0B 42                     byte                               ; 66
+0182:  6C                        +                                  ; 
+0183:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0187:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:66
+0188:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+018c:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0190:  25 03 00                  ||                                 ; 0003 (0194)
+0193:  10                        const1                             ; 
+0194:  01                        pop                                ; 
+0195:  02 04 4F C1 45 43         F_PUSH                             ; push number 15, local 1, number 5, number 3
+019b:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+019f:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+01a1:  0B 43                     byte                               ; 67
+01a3:  6C                        +                                  ; 
+01a4:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+01a8:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:67
+01a9:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+01ad:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+01b1:  25 03 00                  ||                                 ; 0003 (01b5)
+01b4:  10                        const1                             ; 
+01b5:  01                        pop                                ; 
+01b6:  02 04 48 C0 45 43         F_PUSH                             ; push number 8, local 0, number 5, number 3
+01bc:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+01c0:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+01c2:  0B 46                     byte                               ; 70
+01c4:  6C                        +                                  ; 
+01c5:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+01c9:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:70
+01ca:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+01ce:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+01d2:  25 03 00                  ||                                 ; 0003 (01d6)
+01d5:  10                        const1                             ; 
+01d6:  01                        pop                                ; 
+01d7:  02 04 4F C1 45 43         F_PUSH                             ; push number 15, local 1, number 5, number 3
+01dd:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+01e1:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+01e3:  0B 47                     byte                               ; 71
+01e5:  6C                        +                                  ; 
+01e6:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+01ea:  01                        pop                                ; 
+01eb:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:71
+
+;; Function: public void test_array_functions()
+01ec:  02 05 41 42 43 44 45      F_PUSH                             ; push number 1, number 2, number 3, number 4, number 5
+01f3:  11 05 00                  aggregate                          ; 5
+01f6:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:75
+01f8:  0F                        const0                             ; 
+01f9:  7A 02 09 00               (::)                               ; <local_fun> double_array
+01fd:  6B 01                     (void)assign_local                 ; LV1
+; single/tests/compiler/firstclass_functions.lpc:76
+01ff:  3D 01                     transfer_local                     ; LV1
+0201:  3D 00                     transfer_local                     ; LV0
+0203:  07 91 00 02               F_EFUNV                            ; EFUN: evaluate(145)
+0207:  6B 02                     (void)assign_local                 ; LV2
+; single/tests/compiler/firstclass_functions.lpc:78
+0209:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+020d:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0211:  25 03 00                  ||                                 ; 0003 (0215)
+0214:  10                        const1                             ; 
+0215:  01                        pop                                ; 
+0216:  02 05 42 44 46 48 4A      F_PUSH                             ; push number 2, number 4, number 6, number 8, number 10
+021d:  11 05 00                  aggregate                          ; 5
+0220:  02 02 C2 05               F_PUSH                             ; push local 2, string 5
+0224:  0B 4F                     byte                               ; 79
+0226:  6C                        +                                  ; 
+0227:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+022b:  01                        pop                                ; 
+022c:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:79
+
+;; Function: public void test_global_variable()
+022d:  0F                        const0                             ; 
+022e:  7A 02 19 00               (::)                               ; <local_fun> add
+0232:  45 01 00                  global_lvalue                      ; global_func(1)
+0235:  6A                        (void)assign                       ; 
+; single/tests/compiler/firstclass_functions.lpc:84
+0236:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+023a:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+023e:  25 03 00                  ||                                 ; 0003 (0242)
+0241:  10                        const1                             ; 
+0242:  01                        pop                                ; 
+0243:  02 04 4A 81 46 44         F_PUSH                             ; push number 10, global 1, number 6, number 4
+0249:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+024d:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+024f:  0B 55                     byte                               ; 85
+0251:  6C                        +                                  ; 
+0252:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0256:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:85
+0257:  0F                        const0                             ; 
+0258:  7A 02 06 00               (::)                               ; <local_fun> multiply
+025c:  45 01 00                  global_lvalue                      ; global_func(1)
+025f:  6A                        (void)assign                       ; 
+; single/tests/compiler/firstclass_functions.lpc:87
+0260:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+0264:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0268:  25 03 00                  ||                                 ; 0003 (026c)
+026b:  10                        const1                             ; 
+026c:  01                        pop                                ; 
+026d:  02 04 58 81 46 44         F_PUSH                             ; push number 24, global 1, number 6, number 4
+0273:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+0277:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+0279:  0B 58                     byte                               ; 88
+027b:  6C                        +                                  ; 
+027c:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0280:  01                        pop                                ; 
+0281:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:88
+
+;; Function: public void test_passing_to_higher_order()
+0282:  02 05 41 42 43 44 45      F_PUSH                             ; push number 1, number 2, number 3, number 4, number 5
+0289:  11 05 00                  aggregate                          ; 5
+028c:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:92
+028e:  3D 00                     transfer_local                     ; LV0
+0290:  0F                        const0                             ; 
+0291:  7A 45 01 0A 00            (::)                               ; <functional, 1 args>: Code size: 10,
+0296:  02 02 C0 42               F_PUSH                             ; push local 0, number 2
+029a:  6E                        *                                  ; 
+029b:  2D 08 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; identity, pushed_args:1
+029f:  2F                        return                             ; 
+02a0:  07 40 01 02               F_EFUNV                            ; EFUN: map(320)
+02a4:  6B 01                     (void)assign_local                 ; LV1
+; single/tests/compiler/firstclass_functions.lpc:96
+02a6:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+02aa:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+02ae:  25 03 00                  ||                                 ; 0003 (02b2)
+02b1:  10                        const1                             ; 
+02b2:  01                        pop                                ; 
+02b3:  02 05 42 44 46 48 4A      F_PUSH                             ; push number 2, number 4, number 6, number 8, number 10
+02ba:  11 05 00                  aggregate                          ; 5
+02bd:  02 02 C1 05               F_PUSH                             ; push local 1, string 5
+02c1:  0B 61                     byte                               ; 97
+02c3:  6C                        +                                  ; 
+02c4:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+02c8:  01                        pop                                ; 
+02c9:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:97
+
+;; Function: public void test_efun_pointer()
+02ca:  0F                        const0                             ; 
+02cb:  7A 03 A3 01               (::)                               ; <efun> abs
+02cf:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:102
+02d1:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+02d5:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+02d9:  25 03 00                  ||                                 ; 0003 (02dd)
+02dc:  10                        const1                             ; 
+02dd:  01                        pop                                ; 
+02de:  02 02 45 C0               F_PUSH                             ; push number 5, local 0
+02e2:  0C 05                     -byte                              ; -5
+02e4:  07 91 00 02               F_EFUNV                            ; EFUN: evaluate(145)
+02e8:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+02ea:  0B 67                     byte                               ; 103
+02ec:  6C                        +                                  ; 
+02ed:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+02f1:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:103
+02f2:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+02f6:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+02fa:  25 03 00                  ||                                 ; 0003 (02fe)
+02fd:  10                        const1                             ; 
+02fe:  01                        pop                                ; 
+02ff:  02 03 4A C0 4A            F_PUSH                             ; push number 10, local 0, number 10
+0304:  07 91 00 02               F_EFUNV                            ; EFUN: evaluate(145)
+0308:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+030a:  0B 68                     byte                               ; 104
+030c:  6C                        +                                  ; 
+030d:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0311:  01                        pop                                ; 
+0312:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:104
+
+;; Function: public void test_mixed_usage()
+0313:  0F                        const0                             ; 
+0314:  7A 02 19 00               (::)                               ; <local_fun> add
+0318:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:109
+031a:  0F                        const0                             ; 
+031b:  7A 02 06 00               (::)                               ; <local_fun> multiply
+031f:  6B 01                     (void)assign_local                 ; LV1
+; single/tests/compiler/firstclass_functions.lpc:110
+0321:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+0325:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0329:  25 03 00                  ||                                 ; 0003 (032d)
+032c:  10                        const1                             ; 
+032d:  01                        pop                                ; 
+032e:  02 04 48 C0 45 43         F_PUSH                             ; push number 8, local 0, number 5, number 3
+0334:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+0338:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+033a:  0B 70                     byte                               ; 112
+033c:  6C                        +                                  ; 
+033d:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0341:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:112
+0342:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+0346:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+034a:  25 03 00                  ||                                 ; 0003 (034e)
+034d:  10                        const1                             ; 
+034e:  01                        pop                                ; 
+034f:  02 04 4F C1 45 43         F_PUSH                             ; push number 15, local 1, number 5, number 3
+0355:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+0359:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+035b:  0B 71                     byte                               ; 113
+035d:  6C                        +                                  ; 
+035e:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0362:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:113
+0363:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+0367:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+036b:  25 03 00                  ||                                 ; 0003 (036f)
+036e:  10                        const1                             ; 
+036f:  01                        pop                                ; 
+0370:  02 04 48 C0 45 43         F_PUSH                             ; push number 8, local 0, number 5, number 3
+0376:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+037a:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+037c:  0B 74                     byte                               ; 116
+037e:  6C                        +                                  ; 
+037f:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0383:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:116
+0384:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+0388:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+038c:  25 03 00                  ||                                 ; 0003 (0390)
+038f:  10                        const1                             ; 
+0390:  01                        pop                                ; 
+0391:  02 04 4F C1 45 43         F_PUSH                             ; push number 15, local 1, number 5, number 3
+0397:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+039b:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+039d:  0B 75                     byte                               ; 117
+039f:  6C                        +                                  ; 
+03a0:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+03a4:  01                        pop                                ; 
+03a5:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:117
+
+;; Function: public int helper_function(int)
+03a6:  3D 00                     transfer_local                     ; LV0
+03a8:  0B 02                     byte                               ; 2
+03aa:  6C                        +                                  ; 
+03ab:  2F                        return                             ; 
+; single/tests/compiler/firstclass_functions.lpc:121
+
+;; Function: public void test_forward_declaration()
+03ac:  0F                        const0                             ; 
+03ad:  7A 02 11 00               (::)                               ; <local_fun> helper_function
+03b1:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:126
+03b3:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+03b7:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+03bb:  25 03 00                  ||                                 ; 0003 (03bf)
+03be:  10                        const1                             ; 
+03bf:  01                        pop                                ; 
+03c0:  02 03 6A C0 68            F_PUSH                             ; push number 42, local 0, number 40
+03c5:  07 91 00 02               F_EFUNV                            ; EFUN: evaluate(145)
+03c9:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+03cb:  0B 7F                     byte                               ; 127
+03cd:  6C                        +                                  ; 
+03ce:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+03d2:  01                        pop                                ; 
+03d3:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:127
+
+;; Function: public function get_adder()
+03d4:  0F                        const0                             ; 
+03d5:  7A 02 19 00               (::)                               ; <local_fun> add
+03d9:  2F                        return                             ; 
+; single/tests/compiler/firstclass_functions.lpc:131
+
+;; Function: public void test_return_function()
+03da:  2D 12 00 00               F_CALL_FUNCTION_BY_ADDRESS         ; get_adder, pushed_args:0
+03de:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:135
+03e0:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+03e4:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+03e8:  25 03 00                  ||                                 ; 0003 (03ec)
+03eb:  10                        const1                             ; 
+03ec:  01                        pop                                ; 
+03ed:  02 04 4B C0 45 46         F_PUSH                             ; push number 11, local 0, number 5, number 6
+03f3:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+03f7:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+03f9:  0B 88                     byte                               ; 136
+03fb:  6C                        +                                  ; 
+03fc:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0400:  01                        pop                                ; 
+0401:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:136
+
+;; Function: public void test_equivalence()
+0402:  0F                        const0                             ; 
+0403:  7A 02 19 00               (::)                               ; <local_fun> add
+0407:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:141
+0409:  0F                        const0                             ; 
+040a:  7A 02 19 00               (::)                               ; <local_fun> add
+040e:  6B 01                     (void)assign_local                 ; LV1
+; single/tests/compiler/firstclass_functions.lpc:142
+0410:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+0414:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0418:  25 03 00                  ||                                 ; 0003 (041c)
+041b:  10                        const1                             ; 
+041c:  01                        pop                                ; 
+041d:  02 03 C0 43 44            F_PUSH                             ; push local 0, number 3, number 4
+0422:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+0426:  02 03 C1 43 44            F_PUSH                             ; push local 1, number 3, number 4
+042b:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+042f:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+0431:  0B 90                     byte                               ; 144
+0433:  6C                        +                                  ; 
+0434:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0438:  01                        pop                                ; 
+0439:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:144
+
+;; Function: public void test_array()
+043a:  0F                        const0                             ; 
+043b:  7A 02 19 00               (::)                               ; <local_fun> add
+043f:  0F                        const0                             ; 
+0440:  7A 02 06 00               (::)                               ; <local_fun> multiply
+0444:  11 02 00                  aggregate                          ; 2
+0447:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:148
+0449:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+044d:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0451:  25 03 00                  ||                                 ; 0003 (0455)
+0454:  10                        const1                             ; 
+0455:  01                        pop                                ; 
+0456:  02 03 4A 40 C0            F_PUSH                             ; push number 10, number 0, local 0
+045b:  4C                        index                              ; 
+045c:  02 02 45 45               F_PUSH                             ; push number 5, number 5
+0460:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+0464:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+0466:  0B 96                     byte                               ; 150
+0468:  6C                        +                                  ; 
+0469:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+046d:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:150
+046e:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+0472:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0476:  25 03 00                  ||                                 ; 0003 (047a)
+0479:  10                        const1                             ; 
+047a:  01                        pop                                ; 
+047b:  02 03 4A 41 C0            F_PUSH                             ; push number 10, number 1, local 0
+0480:  4C                        index                              ; 
+0481:  02 02 45 42               F_PUSH                             ; push number 5, number 2
+0485:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+0489:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+048b:  0B 97                     byte                               ; 151
+048d:  6C                        +                                  ; 
+048e:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0492:  01                        pop                                ; 
+0493:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:151
+
+;; Function: public void test_mapping()
+0494:  0E 09                     short_string                       ; "add"
+; single/tests/compiler/firstclass_functions.lpc:158
+0496:  0F                        const0                             ; 
+0497:  7A 02 19 00               (::)                               ; <local_fun> add
+049b:  0E 0A                     short_string                       ; "multiply"
+; single/tests/compiler/firstclass_functions.lpc:156
+049d:  0F                        const0                             ; 
+049e:  7A 02 06 00               (::)                               ; <local_fun> multiply
+04a2:  12 04 00                  aggregate_assoc                    ; 4
+04a5:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:157
+04a7:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+04ab:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+04af:  25 03 00                  ||                                 ; 0003 (04b3)
+04b2:  10                        const1                             ; 
+04b3:  01                        pop                                ; 
+04b4:  02 03 4A 09 C0            F_PUSH                             ; push number 10, string 9, local 0
+04b9:  4C                        index                              ; 
+04ba:  02 02 45 45               F_PUSH                             ; push number 5, number 5
+04be:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+04c2:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+04c4:  0B A0                     byte                               ; 160
+04c6:  6C                        +                                  ; 
+04c7:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+04cb:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:160
+04cc:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+04d0:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+04d4:  25 03 00                  ||                                 ; 0003 (04d8)
+04d7:  10                        const1                             ; 
+04d8:  01                        pop                                ; 
+04d9:  02 03 4A 0A C0            F_PUSH                             ; push number 10, string 10, local 0
+04de:  4C                        index                              ; 
+04df:  02 02 45 42               F_PUSH                             ; push number 5, number 2
+04e3:  07 91 00 03               F_EFUNV                            ; EFUN: evaluate(145)
+04e7:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+04e9:  0B A1                     byte                               ; 161
+04eb:  6C                        +                                  ; 
+04ec:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+04f0:  01                        pop                                ; 
+04f1:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:161
+
+;; Function: private mixed accept_mixed_function(mixed)
+04f2:  40 00                     local                              ; LV0
+04f4:  04 DE 00                  F_EFUN1                            ; EFUN: functionp(222)
+04f7:  6B 01                     (void)assign_local                 ; LV1
+; single/tests/compiler/firstclass_functions.lpc:169
+04f9:  40 01                     local                              ; LV1
+04fb:  26 08 00                  &&                                 ; 0008 (0504)
+04fe:  02 02 C1 60               F_PUSH                             ; push local 1, number 32
+0502:  71                        &                                  ; 
+0503:  76                        !                                  ; 
+0504:  17 0A 00                  branch_when_zero                   ; 000a (050f)
+; single/tests/compiler/firstclass_functions.lpc:171
+0507:  40 00                     local                              ; LV0
+0509:  07 91 00 01               F_EFUNV                            ; EFUN: evaluate(145)
+050d:  6B 00                     (void)assign_local                 ; LV0
+; single/tests/compiler/firstclass_functions.lpc:172
+050f:  3D 00                     transfer_local                     ; LV0
+0511:  2F                        return                             ; 
+0512:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:174
+
+;; Function: public void test_shadowing()
+0513:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+0517:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+051b:  25 03 00                  ||                                 ; 0003 (051f)
+051e:  10                        const1                             ; 
+051f:  01                        pop                                ; 
+0520:  0E 0B                     short_string                       ; "I'm a first class function!\n"
+0522:  0F                        const0                             ; 
+0523:  7A 05 00 03 00            (::)                               ; <functional, 0 args>: Code size: 3,
+0528:  0E 0B                     short_string                       ; "I'm a first class function!\n"
+052a:  2F                        return                             ; 
+052b:  2D 17 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; accept_mixed_function, pushed_args:1
+052f:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+0531:  0B B2                     byte                               ; 178
+0533:  6C                        +                                  ; 
+0534:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0538:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:178
+0539:  02 02 03 04               F_PUSH                             ; push string 3, string 4
+053d:  07 90 00 02               F_EFUNV                            ; EFUN: call_other(144)
+0541:  25 03 00                  ||                                 ; 0003 (0545)
+0544:  10                        const1                             ; 
+0545:  01                        pop                                ; 
+0546:  02 02 0C 0C               F_PUSH                             ; push string 12, string 12
+054a:  2D 17 00 01               F_CALL_FUNCTION_BY_ADDRESS         ; accept_mixed_function, pushed_args:1
+054e:  0E 05                     short_string                       ; "/single/tests/compiler/firstc"
+0550:  0B B3                     byte                               ; 179
+0552:  6C                        +                                  ; 
+0553:  7B 2D 00 03               simul_efun                         ; "__assert_eq" args: 3
+0557:  01                        pop                                ; 
+0558:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:179
+
+;; Function: public void do_tests()
+0559:  2D 0A 00 00               F_CALL_FUNCTION_BY_ADDRESS         ; test_basic_assignment, pushed_args:0
+055d:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:183
+055e:  2D 0C 00 00               F_CALL_FUNCTION_BY_ADDRESS         ; test_direct_invocation, pushed_args:0
+0562:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:184
+0563:  2D 0D 00 00               F_CALL_FUNCTION_BY_ADDRESS         ; test_array_functions, pushed_args:0
+0567:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:185
+0568:  2D 0E 00 00               F_CALL_FUNCTION_BY_ADDRESS         ; test_global_variable, pushed_args:0
+056c:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:186
+056d:  2D 0B 00 00               F_CALL_FUNCTION_BY_ADDRESS         ; test_function_in_array, pushed_args:0
+0571:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:187
+0572:  2D 03 00 00               F_CALL_FUNCTION_BY_ADDRESS         ; test_function_in_mapping, pushed_args:0
+0576:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:188
+0577:  2D 04 00 00               F_CALL_FUNCTION_BY_ADDRESS         ; test_passing_to_higher_order, pushed_args:0
+057b:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:189
+057c:  2D 0F 00 00               F_CALL_FUNCTION_BY_ADDRESS         ; test_efun_pointer, pushed_args:0
+0580:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:190
+0581:  2D 10 00 00               F_CALL_FUNCTION_BY_ADDRESS         ; test_mixed_usage, pushed_args:0
+0585:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:191
+0586:  2D 05 00 00               F_CALL_FUNCTION_BY_ADDRESS         ; test_forward_declaration, pushed_args:0
+058a:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:192
+058b:  2D 13 00 00               F_CALL_FUNCTION_BY_ADDRESS         ; test_return_function, pushed_args:0
+058f:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:193
+0590:  2D 14 00 00               F_CALL_FUNCTION_BY_ADDRESS         ; test_equivalence, pushed_args:0
+0594:  01                        pop                                ; 
+; single/tests/compiler/firstclass_functions.lpc:194
+0595:  2D 18 00 00               F_CALL_FUNCTION_BY_ADDRESS         ; test_shadowing, pushed_args:0
+0599:  01                        pop                                ; 
+059a:  30                        return_zero                        ; 
+; single/tests/compiler/firstclass_functions.lpc:195
+
+;;;  *** Line Number Info ***
+
+absolute line -> (file, line) table:
+0 lines from 1 [single/tests/compiler/firstclass_functions.lpc]
+11 lines from 2 [include/globals.h]
+32 lines from 3 [include/tests.h]
+25 lines from 2 [include/globals.h]
+197 lines from 1 [single/tests/compiler/firstclass_functions.lpc]
+
+address -> absolute line table:
+0000-0005: 73
+0006-000b: 77
+000c-0011: 81
+0012-0014: 85
+0015-0027: 90
+0028-002e: 101
+002f-004f: 102
+0050-0056: 104
+0057-0077: 105
+0078-007e: 108
+007f-00a0: 109
+00a1-00af: 113
+00b0-00d4: 115
+00d5-00fa: 116
+00fb-00fc: 123
+00fd-0103: 121
+0104-010d: 122
+010e-0132: 125
+0133-0158: 126
+0159-015f: 130
+0160-0166: 131
+0167-0187: 134
+0188-01a8: 135
+01a9-01c9: 138
+01ca-01eb: 139
+01ec-01f7: 143
+01f8-01fe: 144
+01ff-0208: 146
+0209-022c: 147
+022d-0235: 152
+0236-0256: 153
+0257-025f: 155
+0260-0281: 156
+0282-028d: 160
+028e-02a5: 164
+02a6-02c9: 165
+02ca-02d0: 170
+02d1-02f1: 171
+02f2-0312: 172
+0313-0319: 177
+031a-0320: 178
+0321-0341: 180
+0342-0362: 181
+0363-0383: 184
+0384-03a5: 185
+03a6-03ab: 189
+03ac-03b2: 194
+03b3-03d3: 195
+03d4-03d9: 199
+03da-03df: 203
+03e0-0401: 204
+0402-0408: 209
+0409-040f: 210
+0410-0439: 212
+043a-0448: 216
+0449-046d: 218
+046e-0493: 219
+0494-0495: 226
+0496-049c: 224
+049d-04a6: 225
+04a7-04cb: 228
+04cc-04f1: 229
+04f2-04f8: 237
+04f9-0506: 239
+0507-050e: 240
+050f-0512: 242
+0513-0538: 246
+0539-0558: 247
+0559-055d: 251
+055e-0562: 252
+0563-0567: 253
+0568-056c: 254
+056d-0571: 255
+0572-0576: 256
+0577-057b: 257
+057c-0580: 258
+0581-0585: 259
+0586-058a: 260
+058b-058f: 261
+0590-0594: 262
+0595-059a: 263
+
+;;; inherit/tests.lpc
+
+Globals:
+   0: test_desc
+VARIABLES defined:
+   0: public string test_desc
+STRINGS:
+   0: inherit/tests.lpc
+   1: include/globals.h
+   2: include/tests.h
+DISASSEMBLY:
+
+;; Function: public void describe_test(string)
+0000:  3D 00                     transfer_local                     ; LV0
+0002:  45 00 00                  global_lvalue                      ; test_desc(0)
+0005:  6A                        (void)assign                       ; 
+0006:  30                        return_zero                        ; 
+; inherit/tests.lpc:4
+
+;; Function: public string query_test_info()
+0007:  44 00 00                  global                             ; test_desc(0)
+000a:  2F                        return                             ; 
+; inherit/tests.lpc:8
+
+;;;  *** Line Number Info ***
+
+absolute line -> (file, line) table:
+0 lines from 1 [inherit/tests.lpc]
+11 lines from 2 [include/globals.h]
+32 lines from 3 [include/tests.h]
+25 lines from 2 [include/globals.h]
+10 lines from 1 [inherit/tests.lpc]
+
+address -> absolute line table:
+0000-0006: 72
+0007-000a: 76
+Trace duration: 10714.198000 us, dumping 150 events to trace_lpcc.json in separate thread.
+[thread 140529192924864d]: Dump trace successfully to file trace_lpcc.json, cost 0 ms.
