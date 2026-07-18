@@ -109,7 +109,20 @@ Don't "fix" that validation.
 
 `extension/config.js` resolves lpcc settings with defaults:
 `lpc.lpcc.path` unset → bundled `bin/lpcc.js` (wasm, run via node);
-`lpc.lpcc.configFile` unset → `<workspace>/.lpc/config`. The
+`lpc.lpcc.configFile` unset → `<workspace>/.lpc/config`, then
+AUTO-DISCOVERY (`lpcc.findDriverConfigs`): mudlib checkouts usually carry
+their driver config at `config.<name>` (root) or `etc/config.<name>` --
+naming is a convention, so CONTENT is the authority (a real config has
+`mudlib directory :` + `master file :` lines; values carry trailing
+`# comment #` chatter that must be stripped). Discovery returns
+`{configFile, runCwd, mudlibRoot}` -- runCwd is the checkout root (a
+relative `mudlib directory` is driver-cwd-relative), mudlibRoot the
+resolved mudlib dir; `runStage` runs lpcc from `runCwd || mudlibRoot`.
+Both the extension (config.js) and the server (resolveLpcc) apply the
+same chain; VS Code additionally shows a one-time-per-workspace prompt
+(`suggestAutoConfig`) offering to persist the discovered config into
+workspace settings, and `lpc.initConfig` offers the discovered config
+before falling back to scaffolding. The
 `lpc.initConfig` command scaffolds that config from
 `makeScaffoldFiles()` in lpcc.js (kept vscode-free so tests and the
 phase-2 LSP can use it). Scaffold facts learned empirically against a
@@ -150,12 +163,25 @@ lpcc.js and the synced lib/. Facts that bite:
   warnings from /std/base64.lpc publish into nvim diagnostics on save;
   symbols/hover/definition/completion and lpc/model work on
   operators/switch.lpc.
-* References + documentHighlight are LEXICAL and document-scope: every
-  identifier token with the same spelling (comments/strings are other
-  token kinds so they never pollute). A `#define NAME` declaration
-  lives INSIDE a single directive token — `wordAtOffset()` resolves the
-  cursor within it, and `referenceSpans()` adds the name's span in the
-  directive as the declaration site (honoring includeDeclaration).
+* References + documentHighlight are LEXICAL: every identifier token
+  with the same spelling (comments/strings are other token kinds so
+  they never pollute). A `#define NAME` declaration lives INSIDE a
+  single directive token — `wordAtOffset()` resolves the cursor within
+  it, and `referenceSpans()` adds the name's span in the directive as
+  the declaration site (honoring includeDeclaration). Mentions inside a
+  `#define` BODY are part of that one directive token and deliberately
+  don't count as references.
+* The workspace cross-index (`server/indexer.js`, vscode-free +
+  dependency-injected) powers cross-file definition, workspace-wide
+  references, and workspace/symbol. Definitions are indexed EAGERLY
+  (tokenize+outline of every `.lpc`/`.c`/`.h` under each workspace
+  folder, built once at `initialized`, re-indexed from live buffers on
+  open/change/save); references are resolved ON DEMAND (cheap
+  `\bword\b` content prefilter, then tokenize only the matching files)
+  so the index stores outlines only and memory stays flat on large
+  mudlibs. Caps: 20k files, 1MB/file; skips dotdirs, node_modules,
+  `.lpc/`. The testsuite (761 files) indexes in ~1s and is the scale
+  gate (test-nvim.lua asserts corpus-scale workspace/symbol).
 * `scripts/test-lsp.mjs` is the gate: a protocol-level harness driving
   the REAL server over stdio (initialize → didOpen → diagnostics /
   symbols / formatting / hover / definition — including `#include

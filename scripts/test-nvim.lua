@@ -123,6 +123,24 @@ local hi = req('textDocument/documentHighlight', {
 })
 check('documentHighlight: switch1 occurrences', hi ~= nil and #hi == refCount)
 
+-- cross-file: ASSERT_EQ is a #define in include/tests.h, never opened --
+-- the 761-file workspace index must resolve it from a switch.lpc call site
+local aLine, aCol
+for i, l in ipairs(lines) do
+  local c = l:find('ASSERT_EQ%(')
+  if c then aLine, aCol = i - 1, c - 1 break end
+end
+local xdef = req('textDocument/definition', {
+  textDocument = { uri = uri }, position = { line = aLine, character = aCol + 1 },
+})
+check('cross-file definition: ASSERT_EQ -> include/tests.h via workspace index',
+      xdef ~= nil and xdef.uri ~= nil and xdef.uri:find('include/tests%.h$') ~= nil)
+
+-- workspace/symbol at corpus scale: do_tests is defined in ~700 test files
+local wsym = req('workspace/symbol', { query = 'do_tests' })
+check('workspace/symbol: corpus-scale index answers (100+ do_tests hits)',
+      wsym ~= nil and #wsym >= 100)
+
 -- include jump on real code: reference_loop.lpc '#include <lpctypes.h>'
 -- resolves through the driver config's include dirs
 vim.cmd.edit(TESTSUITE .. '/single/tests/operators/reference_loop.lpc')

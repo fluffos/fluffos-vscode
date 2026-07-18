@@ -232,6 +232,77 @@ if (process.env.LPCC_BIN) {
   console.log('  (skip) scaffold real-lpcc validation: set LPCC_BIN to run');
 }
 
+// --- driver config auto-discovery ----------------------------------------------
+{
+  const os = await import('node:os');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lpc-discover-'));
+  fs.mkdirSync(path.join(tmp, 'etc'));
+  // the real-world shape: etc/config.<name>, values with trailing comments
+  fs.writeFileSync(path.join(tmp, 'etc', 'config.test'), [
+    'name : testmud',
+    'mudlib directory : ./ # test #',
+    'master file : /single/master',
+    'include directories : /include',
+  ].join('\n'));
+  // root-level config.<name> with an absolute mudlib dir
+  fs.writeFileSync(path.join(tmp, 'config.dev'), [
+    'name : devmud',
+    `mudlib directory : ${tmp}`,
+    'master file : /master',
+  ].join('\n'));
+  // decoys: config-ish names without driver-config content
+  fs.writeFileSync(path.join(tmp, 'config.txt'), 'just notes\n');
+  fs.writeFileSync(path.join(tmp, 'etc', 'config.old'), 'mudlib directory only, no master\n');
+  const found = lpccSvc.findDriverConfigs(tmp);
+  check('findDriverConfigs: content-validated, root then etc/, decoys ignored',
+        found.length === 2 &&
+        found[0].configFile === path.join(tmp, 'config.dev') &&
+        found[1].configFile === path.join(tmp, 'etc', 'config.test'));
+  check('findDriverConfigs: values parsed with trailing comments stripped',
+        found[1].name === 'testmud' &&
+        found[1].mudlibRoot === tmp && found[1].runCwd === tmp &&
+        found[0].mudlibRoot === tmp);
+  fs.rmSync(tmp, { recursive: true, force: true });
+}
+
+// --- workspace cross-index -------------------------------------------------------
+{
+  const os = await import('node:os');
+  const { createIndex } = await import(
+    pathToFileURL(path.join(extDir, 'server', 'indexer.js')).href).then((m) => m.default || m);
+  const { tokenize: tk } = await import(pathToFileURL(path.join(extDir, 'lib', 'tokenizer.mjs')).href);
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lpc-index-'));
+  fs.mkdirSync(path.join(tmp, 'lib'));
+  fs.writeFileSync(path.join(tmp, 'lib', 'util.lpc'),
+    'int util_count;\nint util_fn(int x) { return x + util_count; }\n');
+  fs.writeFileSync(path.join(tmp, 'user.lpc'),
+    '#define TWICE(x) (util_fn(x) + util_fn(x))\nint go() { return util_fn(1); }\n');
+  fs.writeFileSync(path.join(tmp, 'defs.h'), '#define MAX_UTIL 42\n');
+  const idx = createIndex({ tokenize: tk, outline: lpccSvc.outline });
+  idx.build(tmp);
+  check('index: builds over .lpc/.c/.h', idx.size() === 3);
+  const defs = idx.findDefinitions('util_fn');
+  check('index: cross-file definition found',
+        defs.length === 1 && defs[0].file.endsWith('util.lpc') &&
+        defs[0].kind === 'function' && defs[0].line === 2);
+  const refs = idx.findReferences('util_fn', {});
+  // identifiers only: mentions inside a #define body are part of ONE
+  // directive token and deliberately don't count.
+  check('index: references across files (identifier tokens only)',
+        refs.length === 2 &&
+        refs.find((r) => r.file.endsWith('user.lpc')).spans.length === 1 &&
+        refs.find((r) => r.file.endsWith('util.lpc')).spans.length === 1);
+  check('index: workspace symbol search (case-insensitive substring)',
+        idx.findSymbols('UTIL_').some((s) => s.name === 'util_fn') &&
+        idx.findSymbols('max_util').some((s) => s.name === 'MAX_UTIL' && s.kind === 'define'));
+  // live-buffer text beats disk
+  idx.update(path.join(tmp, 'user.lpc'), 'int go() { return 1; }\n');
+  const refs2 = idx.findReferences('util_fn',
+    { openTexts: new Map([[path.join(tmp, 'user.lpc'), 'int go() { return 1; }\n']]) });
+  check('index: update + live buffers override disk', refs2.length === 1);
+  fs.rmSync(tmp, { recursive: true, force: true });
+}
+
 // outline() drives document symbols/breadcrumbs and AST/bytecode anchoring.
 const { tokenize } = await import(pathToFileURL(path.join(extDir, 'lib', 'tokenizer.mjs')).href);
 const sampleSrc = fixture('sample.lpc');

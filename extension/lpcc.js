@@ -71,7 +71,7 @@ function runStage(opts, relPath, stage) {
   return new Promise((resolve) => {
     cp.execFile(
       exe, [...baseArgs, ...flags, opts.configFile, relPath],
-      { cwd: opts.mudlibRoot, timeout: 30000, maxBuffer: 32 * 1024 * 1024 },
+      { cwd: opts.runCwd || opts.mudlibRoot, timeout: 30000, maxBuffer: 32 * 1024 * 1024 },
       (err, stdout, stderr) => {
         resolve({
           ok: !err,
@@ -86,15 +86,18 @@ function runStage(opts, relPath, stage) {
 // Where the driver's debug log lives for a config (compile diagnostics land
 // THERE, not on stderr, when the mudlib's master has no log_error apply).
 function debugLogPath(opts) {
+  const path = require('path');
   let logDir = 'log', logFile = 'debug.log';
   try {
-    const cfg = require('fs').readFileSync(opts.configFile, 'utf8');
+    // configFile may be relative to where lpcc runs (runCwd/mudlibRoot).
+    const cfgPath = path.isAbsolute(opts.configFile)
+      ? opts.configFile : path.join(opts.runCwd || opts.mudlibRoot, opts.configFile);
+    const cfg = require('fs').readFileSync(cfgPath, 'utf8');
     const d = /^log directory\s*:\s*(.+)$/m.exec(cfg);
     const f = /^debug log file\s*:\s*(.+)$/m.exec(cfg);
-    if (d) logDir = d[1].trim();
-    if (f) logFile = f[1].trim();
+    if (d) logDir = d[1].replace(/#.*$/, '').trim();
+    if (f) logFile = f[1].replace(/#.*$/, '').trim();
   } catch (_e) { /* unreadable config: defaults */ }
-  const path = require('path');
   const dir = path.isAbsolute(logDir) ? logDir : path.join(opts.mudlibRoot, logDir);
   return path.join(dir, logFile);
 }
@@ -473,6 +476,58 @@ function stripNoise(raw) {
     .replace(/^\n+/, '').replace(/\n+$/, '\n');
 }
 
+// --- driver config discovery ------------------------------------------------------
+//
+// Mudlib checkouts usually carry their driver config at a well-known spot:
+// config.<name> at the root, or etc/config.<name> (the fluffos testsuite
+// itself uses etc/config.test). Naming is only a convention, so CONTENT is
+// the authority: a real driver config has "mudlib directory :" and
+// "master file :" lines. Values may carry trailing "# comment #" chatter
+// (config.test: "mudlib directory : ./ # test #") -- stripped here.
+//
+// Returns [{configFile, mudlibRoot, runCwd, name}], scan order root then
+// etc/, alphabetical within each:
+//   configFile  -- absolute path to the config
+//   runCwd      -- where lpcc must RUN from (the checkout root: a relative
+//                  "mudlib directory" in the config is driver-cwd-relative)
+//   mudlibRoot  -- the resolved mudlib directory (base for mudlib-relative
+//                  paths: file relPaths, diagnostics, include dirs)
+function findDriverConfigs(rootDir) {
+  const fs = require('fs');
+  const path = require('path');
+  const out = [];
+  const val = (text, key) => {
+    const m = new RegExp('^' + key + '\\s*:\\s*(.+)$', 'm').exec(text);
+    return m ? m[1].replace(/#.*$/, '').trim() : null;
+  };
+  for (const sub of ['', 'etc']) {
+    const dir = path.join(rootDir, sub);
+    let entries;
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (_e) { continue; }
+    entries.sort((a, b) => a.name.localeCompare(b.name));
+    for (const e of entries) {
+      if (!e.isFile()) continue;
+      if (!/^config(\.|$)/i.test(e.name) && !/\.(cfg|conf)$/i.test(e.name)) continue;
+      const abs = path.join(dir, e.name);
+      let text;
+      try {
+        if (fs.statSync(abs).size > 256 * 1024) continue;
+        text = fs.readFileSync(abs, 'utf8');
+      } catch (_e) { continue; }
+      const mudlib = val(text, 'mudlib directory');
+      if (!mudlib || !val(text, 'master file')) continue;
+      const mudlibRoot = path.resolve(rootDir, mudlib);
+      out.push({
+        configFile: abs,
+        runCwd: rootDir,
+        mudlibRoot: fs.existsSync(mudlibRoot) ? mudlibRoot : rootDir,
+        name: val(text, 'name') || e.name,
+      });
+    }
+  }
+  return out;
+}
+
 // Pure: the scaffold file set for a mudlib root (absolute path).
 // Returned paths are relative to the mudlib root.
 function makeScaffoldFiles(mudlibAbs) {
@@ -611,4 +666,5 @@ module.exports = {
   stripNoise,
   outline,
   makeScaffoldFiles,
+  findDriverConfigs,
 };

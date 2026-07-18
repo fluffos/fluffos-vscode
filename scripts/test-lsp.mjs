@@ -89,21 +89,46 @@ function waitNotify(predicate, ms = 30000) {
 
 const mudlib = fs.mkdtempSync(path.join(os.tmpdir(), 'lpc-lsp-'));
 const lpccBin = process.env.LPCC_BIN || '';
+const lpccMod = await import(pathToFileURL(path.join(repoRoot, 'extension', 'lpcc.js')).href);
 if (lpccBin) {
-  const lpccMod = await import(pathToFileURL(path.join(repoRoot, 'extension', 'lpcc.js')).href);
   for (const [rel, content] of Object.entries(lpccMod.default.makeScaffoldFiles(mudlib))) {
     fs.mkdirSync(path.dirname(path.join(mudlib, rel)), { recursive: true });
     fs.writeFileSync(path.join(mudlib, rel), content);
   }
 }
 
+// Cross-index fixture: on disk BEFORE initialize (the index scans at
+// `initialized`), never opened as a document.
+fs.mkdirSync(path.join(mudlib, 'lib'), { recursive: true });
+fs.writeFileSync(path.join(mudlib, 'lib', 'util.lpc'),
+  '// workspace-indexed, never didOpen\'d\nint util_fn(int x) { return x * 2; }\n');
+
+// Auto-discovery fixture (LPCC_BIN only): a second workspace folder whose
+// driver config lives at the well-known etc/config.<name> spot -- the
+// server must find it with NO lpcc.configFile setting at all.
+const discRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lpc-disc-'));
+if (lpccBin) {
+  const scaffold = lpccMod.default.makeScaffoldFiles(discRoot);
+  for (const [rel, content] of Object.entries(scaffold)) {
+    if (rel === '.lpc/config') continue; // config goes to etc/, not the scaffold spot
+    fs.mkdirSync(path.dirname(path.join(discRoot, rel)), { recursive: true });
+    fs.writeFileSync(path.join(discRoot, rel), content);
+  }
+  fs.mkdirSync(path.join(discRoot, 'etc'), { recursive: true });
+  fs.writeFileSync(path.join(discRoot, 'etc', 'config.auto'), scaffold['.lpc/config']);
+}
+
+const folders = [{ uri: pathToFileURL(mudlib).href, name: 'mudlib' }];
+if (lpccBin) folders.push({ uri: pathToFileURL(discRoot).href, name: 'disc' });
 const init = await request('initialize', {
   processId: process.pid,
   rootUri: pathToFileURL(mudlib).href,
-  workspaceFolders: [{ uri: pathToFileURL(mudlib).href, name: 'mudlib' }],
+  workspaceFolders: folders,
   capabilities: {},
   initializationOptions: {
-    settings: lpccBin ? { lpcc: { path: lpccBin, configFile: path.join(mudlib, '.lpc', 'config') } } : {},
+    // NO lpcc.configFile: the mudlib resolves via its .lpc/config scaffold,
+    // the disc folder via etc/config.* auto-discovery.
+    settings: lpccBin ? { lpcc: { path: lpccBin } } : {},
   },
 });
 check('initialize: capabilities advertised',
@@ -112,6 +137,7 @@ check('initialize: capabilities advertised',
       init.capabilities.definitionProvider === true &&
       init.capabilities.referencesProvider === true &&
       init.capabilities.documentHighlightProvider === true &&
+      init.capabilities.workspaceSymbolProvider === true &&
       init.capabilities.textDocumentSync.save === true &&
       /^lpc-language-server$/.test(init.serverInfo.name));
 notify('initialized', {});
@@ -242,11 +268,40 @@ const inhDef = await request('textDocument/definition', {
 check('definition: inherit "/base" resolves extension-less to base.lpc',
       inhDef && inhDef.uri === pathToFileURL(path.join(mudlib, 'base.lpc')).href);
 
+// --- workspace cross-index ----------------------------------------------------
+const utilUri = pathToFileURL(path.join(mudlib, 'lib', 'util.lpc')).href;
+const callerSrc = 'int go() { return util_fn(2) + util_fn(3); }\n';
+const callerUri = pathToFileURL(path.join(mudlib, 'caller.lpc')).href;
+fs.writeFileSync(path.join(mudlib, 'caller.lpc'), callerSrc);
+notify('textDocument/didOpen', {
+  textDocument: { uri: callerUri, languageId: 'lpc', version: 1, text: callerSrc },
+});
+const xdef = await request('textDocument/definition', {
+  textDocument: { uri: callerUri },
+  position: { line: 0, character: callerSrc.indexOf('util_fn') + 1 },
+});
+check('cross-file definition: util_fn resolves into never-opened lib/util.lpc',
+      xdef && xdef.uri === utilUri && xdef.range.start.line === 1);
+const xrefs = await request('textDocument/references', {
+  textDocument: { uri: callerUri },
+  position: { line: 0, character: callerSrc.indexOf('util_fn') + 1 },
+  context: { includeDeclaration: true },
+});
+check('cross-file references: both call sites here + declaration over there',
+      xrefs && xrefs.length === 3 &&
+      xrefs.filter((r) => r.uri === callerUri).length === 2 &&
+      xrefs.filter((r) => r.uri === utilUri).length === 1);
+const wsym = await request('workspace/symbol', { query: 'util_f' });
+check('workspace/symbol: substring search over the index',
+      wsym && wsym.some((s) => s.name === 'util_fn' && s.location.uri === utilUri));
+
 const comp = await request('textDocument/completion', {
   textDocument: { uri: sampleUri }, position: { line: greetUse, character: 2 },
 });
 check('completion: document symbols + grammar keywords',
       comp.some((c) => c.label === 'greet') && comp.some((c) => c.label === 'foreach'));
+check('completion: workspace symbols from never-opened files',
+      comp.some((c) => c.label === 'util_fn' && /workspace/.test(c.detail)));
 
 // --- real-compiler paths (LPCC_BIN only) --------------------------------------
 if (lpccBin) {
@@ -263,6 +318,21 @@ if (lpccBin) {
     n.params.diagnostics.some((d) => d.source === 'lpcc'));
   check('lpcc diagnostics on save (real compiler)',
         cd.params.diagnostics.some((d) => /include/i.test(d.message)));
+
+  // Auto-discovery end-to-end: a doc in the SECOND workspace folder, whose
+  // only config is etc/config.auto -- never named in any setting.
+  const dUri = pathToFileURL(path.join(discRoot, 'derr.lpc')).href;
+  const dSrc = '#include "nope.h"\nint g() { return 2; }\n';
+  fs.writeFileSync(path.join(discRoot, 'derr.lpc'), dSrc);
+  notify('textDocument/didOpen', {
+    textDocument: { uri: dUri, languageId: 'lpc', version: 1, text: dSrc },
+  });
+  notify('textDocument/didSave', { textDocument: { uri: dUri } });
+  const dd = await waitNotify((n) =>
+    n.method === 'textDocument/publishDiagnostics' && n.params.uri === dUri &&
+    n.params.diagnostics.some((d) => d.source === 'lpcc'));
+  check('lpcc diagnostics via AUTO-DISCOVERED etc/config.* (no setting)',
+        dd.params.diagnostics.some((d) => /include/i.test(d.message)));
 
   const model = await request('lpc/model', { uri: sampleUri });
   check('lpc/model: full Explorer model over LSP',

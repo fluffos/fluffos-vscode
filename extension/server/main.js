@@ -25,9 +25,36 @@ const {
 } = require('vscode-languageserver/node');
 const { TextDocument } = require('vscode-languageserver-textdocument');
 const lpcc = require('../lpcc.js');
+const { createIndex } = require('./indexer.js');
 
 const connection = createConnection();
 const documents = new TextDocuments(TextDocument);
+
+// --- workspace cross-index ----------------------------------------------------
+// Built once after `initialized` over every workspace folder; kept fresh
+// from live buffers. Serves cross-file definition, workspace-wide
+// references, and workspace/symbol.
+
+let index = null;
+let indexReady = Promise.resolve();
+
+function startIndex() {
+  indexReady = engine().then(({ tokenize }) => {
+    index = createIndex({ tokenize, outline: lpcc.outline });
+    let total = 0;
+    for (const root of workspaceFolders) total = index.build(root);
+    connection.console.log(`lpc: indexed ${total} workspace file(s)`);
+  }).catch((e) => connection.console.warn('lpc: workspace index failed: ' + e.message));
+}
+
+// Live-buffer contents beat on-disk contents everywhere the index reads.
+function openDocTexts() {
+  const m = new Map();
+  for (const d of documents.all()) {
+    try { m.set(fileURLToPath(d.uri), d.getText()); } catch (_e) { /* untitled */ }
+  }
+  return m;
+}
 
 // --- engine (synced lib/) -----------------------------------------------------
 
@@ -53,6 +80,19 @@ let workspaceFolders = []; // fs paths
 
 function docPath(doc) { return fileURLToPath(doc.uri); }
 
+// Auto-discovery cache: workspace root -> findDriverConfigs() result.
+// Cleared on didChangeConfiguration (a config appearing mid-session is
+// picked up after any settings touch or a server restart).
+const configDiscovery = new Map();
+
+function discoverConfigs(rootDir) {
+  if (!configDiscovery.has(rootDir)) {
+    try { configDiscovery.set(rootDir, lpcc.findDriverConfigs(rootDir)); }
+    catch (_e) { configDiscovery.set(rootDir, []); }
+  }
+  return configDiscovery.get(rootDir);
+}
+
 // Mirror of the extension's config.resolveLpccSettings(), vscode-free.
 function resolveLpcc(doc) {
   const p = docPath(doc);
@@ -60,6 +100,7 @@ function resolveLpcc(doc) {
   if (!mudlibRoot) {
     mudlibRoot = workspaceFolders.find((w) => p.startsWith(w + path.sep)) || path.dirname(p);
   }
+  let runCwd = null;
   let lpccPath = (settings.lpcc && settings.lpcc.path || '').trim();
   if (!lpccPath) {
     const bundled = path.join(__dirname, '..', 'bin', 'lpcc.js');
@@ -70,9 +111,19 @@ function resolveLpcc(doc) {
     const scaffold = path.join(mudlibRoot, '.lpc', 'config');
     if (fs.existsSync(scaffold)) configFile = scaffold;
   }
+  if (!configFile) {
+    // Zero-setup: a real driver config at a well-known spot (config.* at
+    // the root, etc/config.*) -- see lpcc.findDriverConfigs().
+    const found = discoverConfigs(mudlibRoot);
+    if (found.length > 0) {
+      configFile = found[0].configFile;
+      runCwd = found[0].runCwd;
+      mudlibRoot = found[0].mudlibRoot;
+    }
+  }
   const relPath = path.relative(mudlibRoot, p).split(path.sep).join('/');
   const available = !!(lpccPath && configFile) && !relPath.startsWith('..');
-  return { lpccPath, configFile, mudlibRoot, relPath, available };
+  return { lpccPath, configFile, mudlibRoot, runCwd, relPath, available };
 }
 
 // Include dirs from the driver config ("include directories : /a:/b",
@@ -155,12 +206,20 @@ async function runLpccDiagnostics(doc) {
   lpccTouched = touched;
 }
 
+function reindexDoc(doc) {
+  if (!index) return;
+  try { index.update(fileURLToPath(doc.uri), doc.getText()); } catch (_e) { /* untitled */ }
+}
+
 documents.onDidChangeContent((e) => {
   clearTimeout(lintTimers.get(e.document.uri));
-  lintTimers.set(e.document.uri, setTimeout(() => runLint(e.document), 300));
+  lintTimers.set(e.document.uri, setTimeout(() => {
+    runLint(e.document);
+    reindexDoc(e.document);
+  }, 300));
 });
-documents.onDidOpen((e) => runLint(e.document));
-documents.onDidSave((e) => { runLint(e.document); runLpccDiagnostics(e.document); });
+documents.onDidOpen((e) => { runLint(e.document); reindexDoc(e.document); });
+documents.onDidSave((e) => { runLint(e.document); reindexDoc(e.document); runLpccDiagnostics(e.document); });
 documents.onDidClose((e) => {
   connection.sendDiagnostics({ uri: e.document.uri, diagnostics: [] });
 });
@@ -297,6 +356,22 @@ connection.onDefinition(async (params) => {
                      hit.selEnd != null ? hit.selEnd : hit.end),
     };
   }
+  // Cross-file: the workspace index (functions/globals/defines declared in
+  // any indexed file -- inherited objects, simul_efuns, headers).
+  if (tok.kind === 'identifier') {
+    await indexReady;
+    if (index) {
+      const locs = index.findDefinitions(word).map((d) => ({
+        uri: pathToFileURL(d.file).href,
+        range: {
+          start: { line: d.line - 1, character: d.col - 1 },
+          end: { line: d.line - 1, character: d.col - 1 + word.length },
+        },
+      }));
+      if (locs.length === 1) return locs[0];
+      if (locs.length > 1) return locs;
+    }
+  }
   return null;
 });
 
@@ -356,9 +431,25 @@ connection.onReferences(async (params) => {
   const word = wordAtOffset(tokens, doc.offsetAt(params.position));
   if (!word) return null;
   const includeDecl = !params.context || params.context.includeDeclaration !== false;
-  return referenceSpans(tokens, outline, word)
+  const local = referenceSpans(tokens, outline, word)
     .filter((s) => includeDecl || !s.decl)
     .map((s) => ({ uri: doc.uri, range: rangeOf(doc, s.start, s.end) }));
+  // Workspace-wide: every other indexed file, live buffers included.
+  await indexReady;
+  if (!index) return local;
+  let docFsPath = null;
+  try { docFsPath = fileURLToPath(doc.uri); } catch (_e) { /* untitled */ }
+  const rest = index.findReferences(word, {
+    openTexts: openDocTexts(),
+    skipFiles: new Set(docFsPath ? [docFsPath] : []),
+  }).flatMap((f) => f.spans.map((s) => ({
+    uri: pathToFileURL(f.file).href,
+    range: {
+      start: { line: s.line - 1, character: s.col - 1 },
+      end: { line: s.line - 1, character: s.col - 1 + s.length },
+    },
+  })));
+  return [...local, ...rest];
 });
 
 connection.onDocumentHighlight(async (params) => {
@@ -369,6 +460,25 @@ connection.onDocumentHighlight(async (params) => {
   if (!word) return null;
   return referenceSpans(tokens, outline, word)
     .map((s) => ({ range: rangeOf(doc, s.start, s.end), kind: 1 /* Text */ }));
+});
+
+connection.onWorkspaceSymbol(async (params) => {
+  await indexReady;
+  if (!index) return null;
+  const kindMap = {
+    function: SymbolKind.Function, variable: SymbolKind.Variable, define: SymbolKind.Constant,
+  };
+  return index.findSymbols(params.query).map((s) => ({
+    name: s.name,
+    kind: kindMap[s.kind] || SymbolKind.Object,
+    location: {
+      uri: pathToFileURL(s.file).href,
+      range: {
+        start: { line: s.line - 1, character: s.col - 1 },
+        end: { line: s.line - 1, character: s.col - 1 + s.name.length },
+      },
+    },
+  }));
 });
 
 connection.onCompletion(async (params) => {
@@ -384,6 +494,21 @@ connection.onCompletion(async (params) => {
   for (const k of grammar.keywords || []) push(k, CompletionItemKind.Keyword, 'keyword');
   for (const t of grammar.typeKeywords || []) push(t, CompletionItemKind.Keyword, 'type');
   for (const m of grammar.modifierKeywords || []) push(m, CompletionItemKind.Keyword, 'modifier');
+  // Workspace symbols (functions/defines from other files -- simul_efuns,
+  // library objects, shared headers), deduped by name.
+  if (index && index.built()) {
+    const seen = new Set(items.map((i) => i.label));
+    const ckind = {
+      function: CompletionItemKind.Function,
+      variable: CompletionItemKind.Variable,
+      define: CompletionItemKind.Constant,
+    };
+    for (const s of index.findSymbols('', 2000)) {
+      if (seen.has(s.name)) continue;
+      seen.add(s.name);
+      push(s.name, ckind[s.kind], `${s.kind} (workspace)`);
+    }
+  }
   return items;
 });
 
@@ -486,14 +611,18 @@ connection.onInitialize((params) => {
       definitionProvider: true,
       referencesProvider: true,
       documentHighlightProvider: true,
+      workspaceSymbolProvider: true,
       completionProvider: {},
     },
     serverInfo: { name: 'lpc-language-server', version: 'fluffos@' + pin },
   };
 });
 
+connection.onInitialized(() => startIndex());
+
 connection.onDidChangeConfiguration((change) => {
   settings = (change.settings && change.settings.lpc) || {};
+  configDiscovery.clear();
   for (const doc of documents.all()) runLint(doc);
 });
 

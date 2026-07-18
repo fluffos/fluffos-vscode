@@ -129,6 +129,10 @@ function activate(ctx) {
     vscode.commands.registerCommand('lpc.openExplorer', () => explorer.openExplorer(ctx)),
     lpcConfig.register(ctx));
 
+  // One-time offer to persist a discovered driver config (config.* /
+  // etc/config.*) into the workspace settings. Fire-and-forget.
+  lpcConfig.suggestAutoConfig(ctx).catch(() => {});
+
   if (lspClient.enabled()) {
     // The language server owns diagnostics, symbols, formatting, hover,
     // definition and completion; nothing else to register in-process.

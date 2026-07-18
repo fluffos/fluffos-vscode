@@ -65,9 +65,10 @@ built on the official `vscode-languageserver` library) and uses it by
 default (`lpc.useLanguageServer`): diagnostics (structural lint as you
 type + real lpcc compiler errors on save, including in `#include`d
 files), outline/breadcrumbs, formatting, hover, go-to-definition
-(functions/globals/defines, `#include` and `inherit` targets via the
-driver config's include dirs), find-references + document highlight
-(lexical, document-scope), completion, and custom `lpc/*` requests
+(functions/globals/defines — cross-file via the workspace index — plus
+`#include` and `inherit` targets via the driver config's include dirs),
+workspace-wide find-references + document highlight, workspace symbol
+search (Ctrl+T), completion, and custom `lpc/*` requests
 (`lpc/model`, `lpc/tokens`, `lpc/ast`, `lpc/bytecode`) that serve the
 Compiler Explorer's data — the webview is a pure renderer over LSP.
 Other editors can run it standalone: `node extension/server/main.js
@@ -81,7 +82,10 @@ When the vsix is built with a wasm `lpcc` (`LPCC_WASM_DIR=<dir> node
 scripts/build.mjs`, or a `build-wasm/` build inside the submodule), the
 extension needs **no settings at all**: with `lpc.lpcc.path` unset it runs
 the bundled `bin/lpcc.js` through node, and with `lpc.lpcc.configFile`
-unset it uses `<workspace>/.lpc/config` if present. Run **"LPC:
+unset it uses `<workspace>/.lpc/config` if present — or **auto-discovers
+the mudlib's own driver config** at the usual spots (`config.<name>` at
+the workspace root, `etc/config.<name>`), validated by content, and
+offers once per workspace to persist it into the settings. Run **"LPC:
 Initialize compiler config"** once in a mudlib workspace to scaffold that
 config (a minimal `name`/`mudlib`/`master`/`include` template plus a tiny
 master object under `.lpc/` — never overwrites existing files), and
