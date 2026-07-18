@@ -261,6 +261,9 @@ function webviewHtml(webview) {
   #bc-bar { display: flex; gap: 14px; align-items: center; margin: 4px 0 8px; }
   #bc-bar label { cursor: pointer; }
   tr.ins.haslink { cursor: pointer; }
+  tr.ins.fnl td:first-child { border-left: 3px solid var(--vscode-charts-purple, #c586c0); padding-left: 6px; }
+  tr.ins.fnl .addr { opacity: .9; }
+  .fnl-tag { color: var(--vscode-charts-purple, #c586c0); font-size: 11px; margin-left: 6px; }
   #bc-tip { position: fixed; z-index: 10; display: none; max-width: 640px; overflow: hidden;
             background: var(--vscode-editorWidget-background, #252526);
             border: 1px solid var(--vscode-focusBorder, #07f); border-radius: 4px;
@@ -621,6 +624,30 @@ function webviewHtml(webview) {
   function renderProgramFns(p, outlineByName, isTop) {
     let html = '';
     for (const fn of p.functions) {
+      // A (: ... :) functional's body is EMBEDDED inline right after its
+      // F_FUNCTION_CONSTRUCTOR header (the runtime records offset = here
+      // and skips it). Delimit those rows so the embedding is visible.
+      const fnlRanges = [];
+      for (const ins of fn.instructions) {
+        const fm = /<functional, (\\d+) args?>: Code size: (\\d+)/.exec(ins.comment);
+        if (fm) {
+          const headerLen = ins.hex ? ins.hex.trim().split(/\\s+/).length : 5;
+          const start = parseInt(ins.addr, 16) + headerLen;
+          fnlRanges.push([start, start + (+fm[2])]);
+          ins.isFnlHead = true;
+        }
+        // Anonymous closures print their end address in DECIMAL (%04tu).
+        const am = /<anonymous function, \\d+ args?, \\d+ locals, ends at (\\d+)>/.exec(ins.comment);
+        if (am) {
+          const headerLen = ins.hex ? ins.hex.trim().split(/\\s+/).length : 6;
+          fnlRanges.push([parseInt(ins.addr, 16) + headerLen, parseInt(am[1], 10)]);
+          ins.isFnlHead = true;
+        }
+      }
+      const inFnl = (addrHex) => {
+        const a = parseInt(addrHex, 16);
+        return fnlRanges.some((r) => a >= r[0] && a < r[1]);
+      };
       const o = isTop ? outlineByName.get(fn.name) : null;
       html += '<details open><summary>' + esc(fn.signature) +
         (o ? ' <a class="link jump" data-l="' + o.line + '" data-c="' + o.col + '">go to source ↗</a>' : '') +
@@ -634,9 +661,12 @@ function webviewHtml(webview) {
         }
         const inFile = ins.srcFile && model.lpcc.relPath &&
           (ins.srcFile === model.lpcc.relPath || '/' + ins.srcFile === model.lpcc.relPath);
-        html += '<tr id="a' + ins.addr + '" class="ins' + (inFile ? ' haslink' : '') +
+        const fnlCls = inFnl(ins.addr) ? ' fnl' : '';
+        html += '<tr id="a' + ins.addr + '" class="ins' + fnlCls + (inFile ? ' haslink' : '') +
           (inFile ? '" data-srcl="' + ins.srcLine : '') + '"><td class="addr">' + ins.addr + '</td><td class="hex">' +
-          esc(ins.hex.length > 26 ? ins.hex.slice(0, 24) + '…' : ins.hex) + '</td><td>' + esc(ins.mnemonic) +
+          esc(ins.hex.length > 26 ? ins.hex.slice(0, 24) + '…' : ins.hex) + '</td><td>' +
+          (fnlCls ? '<span class="fnl-tag">│ </span>' : '') + esc(ins.mnemonic) +
+          (ins.isFnlHead ? ' <span class="fnl-tag">closure body follows ↓</span>' : '') +
           '</td><td>' + comment + '</td><td>' +
           (ins.srcLine ? '<a class="link src" data-f="' + esc(ins.srcFile) + '" data-l="' + ins.srcLine +
             '">' + esc(ins.srcFile.split('/').pop()) + ':' + ins.srcLine + '</a>' : '') +
