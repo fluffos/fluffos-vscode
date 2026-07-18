@@ -47,6 +47,7 @@ jobs:
         if: steps.bump.outputs.changed == 'true'
         run: |
           node fluffos/tools/lpc-syntax/test.mjs
+          node scripts/test.mjs
           node scripts/build.mjs
 
       - name: Open pull request

@@ -19,11 +19,15 @@ jobs:
         with:
           node-version: 22
 
-      # The grammar/tooling test suite from the pinned fluffos commit. It also
-      # verifies the extension's generated assets (syntaxes/, lib/) are in sync
-      # with their sources, so a stale pin fails here, not at runtime.
-      - name: Grammar and tooling tests
+      # The language engine's own suite, from the pinned fluffos commit --
+      # tests the tokenizer/formatter/linter/grammar the build syncs in.
+      - name: Grammar and tooling tests (upstream)
         run: node fluffos/tools/lpc-syntax/test.mjs
+
+      # Extension-local checks (manifest, extension.js wiring, synced-engine
+      # smoke test). Re-syncs extension/lib + extension/syntaxes internally.
+      - name: Extension tests
+        run: node scripts/test.mjs
 
       - name: Stage and package extension
         run: node scripts/build.mjs

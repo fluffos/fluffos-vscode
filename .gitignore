@@ -1,3 +1,8 @@
 out/
 *.vsix
 node_modules/
+
+# Synced from the fluffos submodule by scripts/build.mjs -- generated inputs,
+# never committed.
+extension/lib/
+extension/syntaxes/

@@ -1,16 +1,22 @@
 # fluffos-vscode — LPC (FluffOS) extension for VS Code
 
-Packaging and release home for the **LPC (FluffOS)** VS Code extension:
-syntax highlighting, structural diagnostics as you type, Format Document /
-format-on-save, and optional real compiler errors via the FluffOS `lpcc`
-front-end.
+The **LPC (FluffOS)** VS Code extension: syntax highlighting, structural
+diagnostics as you type, Format Document / format-on-save, and optional
+real compiler errors via the FluffOS `lpcc` front-end.
 
-The extension's **source of record is the [fluffos](https://github.com/fluffos/fluffos)
-repository** (`tools/lpc-syntax/vscode/`), where it is generated from and
-tested against the driver compiler's own grammar contract. This repo pins a
-fluffos commit via the `fluffos/` git submodule and builds, tests, and
-releases the extension from that pin — so every release is traceable to an
-exact driver commit and can never drift from what the compiler accepts.
+**The extension source lives here** (`extension/`). Its language engine is
+an **output of the [fluffos](https://github.com/fluffos/fluffos) driver
+repository**, pinned via the `fluffos/` git submodule: the grammar-driven
+tokenizer/formatter/linter and grammar contract
+(`fluffos/tools/lpc-syntax/`) are synced into `extension/lib/` and
+`extension/syntaxes/` at build time. The engine is generated from the
+compiler's own grammar, so the extension can never drift from what the
+driver actually accepts — and every release is traceable to an exact
+driver commit.
+
+Planned next: consume fluffos's WebAssembly driver build the same way, so
+save-time compiler diagnostics work in-editor without a native `lpcc`
+install.
 
 ## Install
 
@@ -24,21 +30,24 @@ exact driver commit and can never drift from what the compiler accepts.
 * Or, once published, install **LPC (FluffOS)** from the VS Code Marketplace
   / Open VSX.
 
-Features, settings (`lpc.lint.*`, `lpc.format.*`, `lpc.lpcc.*`), and usage
-are documented in the extension's own
-[README](https://github.com/fluffos/fluffos/tree/master/tools/lpc-syntax/vscode).
+Features and settings are documented in
+[`extension/README.md`](extension/README.md) (the packaged extension
+README).
 
 ## Repository layout
 
 | Path | What |
 |---|---|
-| `fluffos/` | Git submodule — the pinned fluffos commit the extension is built from. |
-| `scripts/build.mjs` | Stages `fluffos/tools/lpc-syntax/vscode/` into `out/extension/`, patches the version and repository metadata, records the pinned commit, and packages the `.vsix` with `@vscode/vsce`. |
-| `.github/workflows/ci.yml` | Push/PR: grammar tests + packaging dry run; uploads the `.vsix` artifact. |
+| `extension/` | The extension source: `extension.js`, manifest, language configuration, packaged README. |
+| `extension/lib/`, `extension/syntaxes/` | **Generated, gitignored** — synced from the submodule by the build; never edit, never commit. |
+| `fluffos/` | Git submodule — the pinned fluffos commit the language engine is taken from. |
+| `scripts/build.mjs` | Syncs the engine from the pin, stages `extension/` into `out/extension/`, patches version + `fluffos.commit` metadata, packages the `.vsix` with `@vscode/vsce`. |
+| `scripts/test.mjs` | Extension-local checks (manifest, `extension.js` wiring, synced-engine smoke test). |
+| `.github/workflows/ci.yml` | Push/PR: upstream tooling tests + extension tests + packaging dry run; uploads the `.vsix` artifact. |
 | `.github/workflows/release.yml` | Tag `vX.Y.Z` or manual dispatch: GitHub Release with the `.vsix`; optional Marketplace / Open VSX publish. |
 | `.github/workflows/bump-fluffos.yml` | Weekly + manual: bumps the submodule to latest fluffos master, tests, opens a PR. |
 
-## Build locally
+## Build & develop locally
 
 Requires Node ≥ 18 and git; no npm install (`@vscode/vsce` is fetched by
 `npx` at package time).
@@ -46,12 +55,13 @@ Requires Node ≥ 18 and git; no npm install (`@vscode/vsce` is fetched by
 ```bash
 git clone --recurse-submodules https://github.com/fluffos/fluffos-vscode
 cd fluffos-vscode
-node fluffos/tools/lpc-syntax/test.mjs   # the test gate CI runs
-node scripts/build.mjs                   # out/fluffos-lpc-<version>.vsix
+node scripts/test.mjs      # sync + all local checks (offline-friendly)
+node scripts/build.mjs     # out/fluffos-lpc-<version>.vsix
 ```
 
-`node scripts/build.mjs --no-package` stages without packaging (no network
-needed).
+For extension development: run `node scripts/build.mjs --no-package` once
+(populates `extension/lib/` and `extension/syntaxes/`), then open
+`extension/` in VS Code and press F5 (Run Extension).
 
 ## Cutting a release
 
@@ -80,21 +90,22 @@ Actions tab). By hand:
 ```bash
 git -C fluffos fetch origin master
 git -C fluffos checkout origin/master
-node fluffos/tools/lpc-syntax/test.mjs && node scripts/build.mjs
+node scripts/test.mjs && node scripts/build.mjs
 git add fluffos && git commit -m "Bump fluffos submodule to $(git -C fluffos rev-parse --short HEAD)"
 ```
 
-## Changing the extension itself
+## What to change where
 
-Don't — not here. Extension code, the grammar contract, and the generated
-assets all live in the fluffos repo (`tools/lpc-syntax/`); change them
-there (see that repo's AGENTS.md and `tools/lpc-syntax/README.md`), then
-bump the submodule pin here. This repo intentionally contains only
-packaging and release machinery.
+* **Extension behavior** (activation, diagnostics plumbing, settings,
+  manifest, lpcc integration): here, under `extension/`.
+* **The language engine** (tokenizer, formatter, linter, grammar contract,
+  TextMate grammar): upstream in fluffos `tools/lpc-syntax/` — it is
+  generated from the compiler's grammar and tested there. Change it there,
+  then bump the pin here. Never edit `extension/lib/` or
+  `extension/syntaxes/`; the build overwrites them.
 
 ## Licensing
 
-This packaging repository is licensed under [GPL-3.0](LICENSE). The
-extension code itself is declared MIT by its upstream
-`package.json` in the fluffos repository, and the packaged `.vsix` ships
-the MIT license text accordingly.
+This repository is licensed under [GPL-3.0](LICENSE). The extension
+package declares MIT (`extension/package.json`), and the packaged `.vsix`
+ships the MIT license text accordingly.
