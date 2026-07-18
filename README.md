@@ -14,9 +14,20 @@ compiler's own grammar, so the extension can never drift from what the
 driver actually accepts — and every release is traceable to an exact
 driver commit.
 
-Planned next: consume fluffos's WebAssembly driver build the same way, so
-save-time compiler diagnostics work in-editor without a native `lpcc`
-install.
+The extension also ships a **Compiler Explorer** (`LPC: Open Compiler
+Explorer`, or the circuit-board icon on any LPC editor): per-file Source /
+Tokens / AST / Bytecode / Preprocessed views of the real compile pipeline,
+with breadcrumbs, an AST graph, and click-through links back to the source.
+Source and Tokens work out of the box (bundled grammar tokenizer); the
+compiler stages need the `lpc.lpcc.path` + `lpc.lpcc.configFile` settings.
+With an lpcc that supports `--json` (fluffos ≥ 2026-07), tokens carry
+grammar names and every AST node is click-to-source; older lpcc falls back
+to parsing the human-readable dumps.
+
+Planned next: build `lpcc` to WebAssembly upstream (it is native-only in
+the fluffos CMake today) and ship it as a consumed artifact here, so the
+Explorer's compiler stages and save-time diagnostics work with zero native
+setup — and keep the extension web-compatible.
 
 ## Install
 

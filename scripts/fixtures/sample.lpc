@@ -1,0 +1,17 @@
+#define GREET "hello"
+
+int counter;
+private string name = "sample";
+
+int add(int a, int b) { return a + b; }
+
+varargs string greet(string who) {
+  string msg = GREET + " " + (who ? who : name);
+  for (int i = 0; i < 3; i++) counter += add(i, 1);
+  if (counter > 5) return msg;
+  return "";
+}
+
+void create() {
+  greet("world");
+}

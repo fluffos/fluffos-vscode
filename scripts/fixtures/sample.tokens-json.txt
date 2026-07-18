@@ -1,0 +1,28 @@
+Processing config file: etc/config.test
+maximum local variables: invalid new value, resetting to default.
+New Debug log location: "log/debug.log".
+Execution root: ./
+Initializing internal stuff ....
+Event backend in use: epoll
+Loading simul_efun file : /single/simul_efun
+/std/base64.lpc:53:1: warning: Unused local variable 'p'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/base64.lpc:53:1: warning: Unused local variable 'rlen'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'parts'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'part'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+Loading master file: /single/master
+*Warning: unable to open stat file domain_stats for reading.
+*Warning: unable to open stat file author_stats for reading.
+{"file":"clone/explorer_sample.lpc","fluffos_lpcc":1,"stage":"tokens","tokens":[{"c":1,"k":264,"l":3,"n":"L_BASIC_TYPE","t":"int"},{"c":5,"k":267,"l":3,"n":"L_IDENTIFIER","t":"counter"},{"c":12,"k":59,"l":3,"n":"';'","t":";"},{"c":1,"k":265,"l":4,"n":"L_TYPE_MODIFIER","t":"private"},{"c":9,"k":264,"l":4,"n":"L_BASIC_TYPE","t":"string"},{"c":16,"k":267,"l":4,"n":"L_IDENTIFIER","t":"name"},{"c":21,"k":270,"l":4,"n":"L_ASSIGN","t":"="},{"c":30,"k":258,"l":4,"n":"L_STRING","t":"\"sample\""},{"c":31,"k":59,"l":4,"n":"';'","t":";"},{"c":1,"k":264,"l":6,"n":"L_BASIC_TYPE","t":"int"},{"c":5,"k":267,"l":6,"n":"L_IDENTIFIER","t":"add"},{"c":8,"k":40,"l":6,"n":"'('","t":"("},{"c":9,"k":264,"l":6,"n":"L_BASIC_TYPE","t":"int"},{"c":13,"k":267,"l":6,"n":"L_IDENTIFIER","t":"a"},{"c":14,"k":44,"l":6,"n":"','","t":","},{"c":16,"k":264,"l":6,"n":"L_BASIC_TYPE","t":"int"},{"c":20,"k":267,"l":6,"n":"L_IDENTIFIER","t":"b"},{"c":21,"k":41,"l":6,"n":"')'","t":")"},{"c":23,"k":123,"l":6,"n":"'{'","t":"{"},{"c":25,"k":291,"l":6,"n":"L_RETURN","t":"return"},{"c":32,"k":267,"l":6,"n":"L_IDENTIFIER","t":"a"},{"c":34,"k":43,"l":6,"n":"'+'","t":"+"},{"c":36,"k":267,"l":6,"n":"L_IDENTIFIER","t":"b"},{"c":37,"k":59,"l":6,"n":"';'","t":";"},{"c":39,"k":125,"l":6,"n":"'}'","t":"}"},{"c":1,"k":265,"l":8,"n":"L_TYPE_MODIFIER","t":"varargs"},{"c":9,"k":264,"l":8,"n":"L_BASIC_TYPE","t":"string"},{"c":16,"k":267,"l":8,"n":"L_IDENTIFIER","t":"greet"},{"c":21,"k":40,"l":8,"n":"'('","t":"("},{"c":22,"k":264,"l":8,"n":"L_BASIC_TYPE","t":"string"},{"c":29,"k":267,"l":8,"n":"L_IDENTIFIER","t":"who"},{"c":32,"k":41,"l":8,"n":"')'","t":")"},{"c":34,"k":123,"l":8,"n":"'{'","t":"{"},{"c":3,"k":264,"l":9,"n":"L_BASIC_TYPE","t":"string"},{"c":10,"k":267,"l":9,"n":"L_IDENTIFIER","t":"msg"},{"c":14,"k":270,"l":9,"n":"L_ASSIGN","t":"="},{"c":7,"k":258,"l":9,"n":"L_STRING","t":"\"hello\""},{"c":22,"k":43,"l":9,"n":"'+'","t":"+"},{"c":26,"k":258,"l":9,"n":"L_STRING","t":"\" \""},{"c":28,"k":43,"l":9,"n":"'+'","t":"+"},{"c":30,"k":40,"l":9,"n":"'('","t":"("},{"c":31,"k":267,"l":9,"n":"L_IDENTIFIER","t":"who"},{"c":35,"k":63,"l":9,"n":"'?'","t":"?"},{"c":37,"k":267,"l":9,"n":"L_IDENTIFIER","t":"who"},{"c":41,"k":58,"l":9,"n":"':'","t":":"},{"c":43,"k":267,"l":9,"n":"L_IDENTIFIER","t":"name"},{"c":47,"k":41,"l":9,"n":"')'","t":")"},{"c":48,"k":59,"l":9,"n":"';'","t":";"},{"c":3,"k":286,"l":10,"n":"L_FOR","t":"for"},{"c":7,"k":40,"l":10,"n":"'('","t":"("},{"c":8,"k":264,"l":10,"n":"L_BASIC_TYPE","t":"int"},{"c":12,"k":267,"l":10,"n":"L_IDENTIFIER","t":"i"},{"c":14,"k":270,"l":10,"n":"L_ASSIGN","t":"="},{"c":16,"k":259,"l":10,"n":"L_NUMBER","t":"0"},{"c":17,"k":59,"l":10,"n":"';'","t":";"},{"c":19,"k":267,"l":10,"n":"L_IDENTIFIER","t":"i"},{"c":21,"k":60,"l":10,"n":"'<'","t":"<"},{"c":23,"k":259,"l":10,"n":"L_NUMBER","t":"3"},{"c":24,"k":59,"l":10,"n":"';'","t":";"},{"c":26,"k":267,"l":10,"n":"L_IDENTIFIER","t":"i"},{"c":27,"k":269,"l":10,"n":"L_INC_DEC","t":"++"},{"c":29,"k":41,"l":10,"n":"')'","t":")"},{"c":31,"k":267,"l":10,"n":"L_IDENTIFIER","t":"counter"},{"c":39,"k":270,"l":10,"n":"L_ASSIGN","t":"+="},{"c":42,"k":267,"l":10,"n":"L_IDENTIFIER","t":"add"},{"c":45,"k":40,"l":10,"n":"'('","t":"("},{"c":46,"k":267,"l":10,"n":"L_IDENTIFIER","t":"i"},{"c":47,"k":44,"l":10,"n":"','","t":","},{"c":49,"k":259,"l":10,"n":"L_NUMBER","t":"1"},{"c":50,"k":41,"l":10,"n":"')'","t":")"},{"c":51,"k":59,"l":10,"n":"';'","t":";"},{"c":3,"k":277,"l":11,"n":"L_IF","t":"if"},{"c":6,"k":40,"l":11,"n":"'('","t":"("},{"c":7,"k":267,"l":11,"n":"L_IDENTIFIER","t":"counter"},{"c":15,"k":276,"l":11,"n":"L_ORDER","t":">"},{"c":17,"k":259,"l":11,"n":"L_NUMBER","t":"5"},{"c":18,"k":41,"l":11,"n":"')'","t":")"},{"c":20,"k":291,"l":11,"n":"L_RETURN","t":"return"},{"c":27,"k":267,"l":11,"n":"L_IDENTIFIER","t":"msg"},{"c":30,"k":59,"l":11,"n":"';'","t":";"},{"c":3,"k":291,"l":12,"n":"L_RETURN","t":"return"},{"c":11,"k":258,"l":12,"n":"L_STRING","t":"\"\""},{"c":12,"k":59,"l":12,"n":"';'","t":";"},{"c":1,"k":125,"l":13,"n":"'}'","t":"}"},{"c":1,"k":264,"l":15,"n":"L_BASIC_TYPE","t":"void"},{"c":6,"k":267,"l":15,"n":"L_IDENTIFIER","t":"create"},{"c":12,"k":40,"l":15,"n":"'('","t":"("},{"c":13,"k":41,"l":15,"n":"')'","t":")"},{"c":15,"k":123,"l":15,"n":"'{'","t":"{"},{"c":3,"k":267,"l":16,"n":"L_IDENTIFIER","t":"greet"},{"c":8,"k":40,"l":16,"n":"'('","t":"("},{"c":15,"k":258,"l":16,"n":"L_STRING","t":"\"world\""},{"c":16,"k":41,"l":16,"n":"')'","t":")"},{"c":17,"k":59,"l":16,"n":"';'","t":";"},{"c":1,"k":125,"l":17,"n":"'}'","t":"}"}]}
+Uncollected profiling events: 74.

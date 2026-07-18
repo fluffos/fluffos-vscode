@@ -25,7 +25,41 @@ Two kinds of code exist here, with opposite rules:
 
 Planned: the fluffos WebAssembly driver build will be consumed the same
 way (as a pinned output) to provide in-editor compiler diagnostics
-without a native `lpcc` binary.
+without a native `lpcc` binary. (`lpcc` is native-only in fluffos CMake
+today — the wasm target needs adding upstream, NODERAWFS-style, before
+this repo can consume it.)
+
+## 1b. The Compiler Explorer / phase-2 LSP layering
+
+`extension/lpcc.js` is the lpcc pipeline service: it runs lpcc stage
+outputs and parses them into plain-data models (tokens, AST, bytecode,
+diagnostics, outline). It NEVER imports `vscode` — 1-based positions,
+mudlib-relative paths, plain objects — because the planned phase-2 LSP
+server lifts it unchanged and serves the same models over custom LSP
+requests. Keep acquisition/parsing there; rendering in `explorer.js`
+(the webview); editor plumbing in `extension.js`/`symbols.js`.
+
+lpcc facts the service encodes (verified against a real build):
+* stdout mixes driver boot noise around every payload — all parsers
+  extract by markers, never line position.
+* `--json --tokens` / `--json --ast` (fluffos ≥ 2026-07) emit one-line
+  `{"fluffos_lpcc":1,...}` envelopes: token NAMES, AST source LINES, an
+  `{"stage":"files"}` companion with the absolute-line segment table
+  (AST lines are compilation-unit-absolute, includes inlined; a file's
+  numbering continues across non-adjacent segments) and the string
+  table for `(string N)` atoms. Prefer these; fall back to text parsing
+  for older lpcc.
+* Text AST S-expressions contain `(void)`-prefixed ATOM names
+  (`(void)assign_local`) that must not be parsed as child lists.
+* Bytecode `; file:line` annotations TRAIL the instruction run they
+  describe. The text disassembler has a known operand-decode bug
+  (`loop_cond_number`) that desyncs addresses — parsers must tolerate
+  garbage rows; bytecode `--json` upstream is blocked on fixing it.
+* Parser regressions are pinned by fixtures in `scripts/fixtures/`
+  (REAL lpcc output, boot noise kept on purpose). If a stage format
+  changes upstream, re-capture: build lpcc, run the stage flags against
+  `testsuite/etc/config.test` with fixtures/sample.lpc placed at
+  `testsuite/clone/explorer_sample.lpc`.
 
 ## 2. Layout & build flow
 

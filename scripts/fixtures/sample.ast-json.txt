@@ -1,0 +1,30 @@
+Processing config file: etc/config.test
+maximum local variables: invalid new value, resetting to default.
+New Debug log location: "log/debug.log".
+Execution root: ./
+Initializing internal stuff ....
+Event backend in use: epoll
+Loading simul_efun file : /single/simul_efun
+/std/base64.lpc:53:1: warning: Unused local variable 'p'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/base64.lpc:53:1: warning: Unused local variable 'rlen'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'parts'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'part'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+Loading master file: /single/master
+*Warning: unable to open stat file domain_stats for reading.
+*Warning: unable to open stat file author_stats for reading.
+{"file":"clone/explorer_sample.lpc","fluffos_lpcc":1,"stage":"ast","trees":[{"roots":[{"a":[0],"c":[{"c":[{"c":[{"a":[0],"k":"local","l":74},{"a":[1],"k":"local","l":74}],"k":"+","l":74}],"k":"return"}],"k":"function"},{"a":[1],"c":[{"c":[{"a":[1],"c":[{"c":[{"a":[4],"k":"string"},{"c":[{"a":[0],"k":"local","l":77},{"a":[0],"k":"local","l":77},{"a":[1],"k":"global","l":77}],"k":"if"}],"k":"+","l":77}],"k":"(void)assign_local","l":77},{"a":[2],"c":[{"a":[0],"k":"number"}],"k":"(void)assign_local","l":78},{"a":[1],"c":[{"c":[{"a":[0],"c":[{"a":[2],"k":"local","l":78},{"a":[1],"k":"number"}],"k":"F_CALL_FUNCTION_BY_ADDRESS","l":78},{"a":[0],"k":"global_lvalue","l":78}],"k":"(void)+=","l":78},{"a":[2],"k":"loop_incr","l":78},{"a":[2,3],"k":"loop_cond_number","l":78}],"k":"loop"},{"c":[{"c":[{"a":[0],"k":"global","l":79},{"a":[5],"k":"number"}],"k":">","l":79},{"c":[{"a":[1],"k":"local","l":79}],"k":"return"}],"k":"if"},{"c":[{"a":[5],"k":"string"}],"k":"return"},{"k":"return_zero"}],"k":"seq"}],"k":"function"},{"a":[2],"c":[{"c":[{"c":[{"a":[1],"c":[{"a":[6],"k":"string"}],"k":"F_CALL_FUNCTION_BY_ADDRESS","l":84}],"k":"pop","l":84},{"k":"return_zero"}],"k":"seq"}],"k":"function"}],"title":"TREE_MAIN"},{"roots":[{"a":[3],"c":[{"c":[{"c":[{"a":[3],"k":"string"},{"a":[1],"k":"global_lvalue","l":72}],"k":"(void)assign","l":72},{"k":"return_zero"}],"k":"seq"}],"k":"function"}],"title":"TREE_INIT"}]}
+{"fluffos_lpcc":1,"segments":[{"file":"clone/explorer_sample.lpc","lines":0},{"file":"include/globals.h","lines":11},{"file":"include/tests.h","lines":32},{"file":"include/globals.h","lines":25},{"file":"clone/explorer_sample.lpc","lines":18}],"stage":"files","strings":["clone/explorer_sample.lpc","include/globals.h","include/tests.h","sample","hello ","","world"]}
+Trace duration: 8657.356000 us, dumping 111 events to trace_lpcc.json in separate thread.
+[thread 140528039491264d]: Dump trace successfully to file trace_lpcc.json, cost 0 ms.

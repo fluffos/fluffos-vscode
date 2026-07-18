@@ -1,0 +1,122 @@
+Processing config file: etc/config.test
+maximum local variables: invalid new value, resetting to default.
+New Debug log location: "log/debug.log".
+Execution root: ./
+Initializing internal stuff ....
+Event backend in use: epoll
+Loading simul_efun file : /single/simul_efun
+/std/base64.lpc:53:1: warning: Unused local variable 'p'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/base64.lpc:53:1: warning: Unused local variable 'rlen'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'parts'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'part'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+Loading master file: /single/master
+*Warning: unable to open stat file domain_stats for reading.
+*Warning: unable to open stat file author_stats for reading.
+    3:1      264  int
+    3:5      267  counter
+    3:12      59  ;
+    4:1      265  private
+    4:9      264  string
+    4:16     267  name
+    4:21     270  =
+    4:30     258  "sample"
+    4:31      59  ;
+    6:1      264  int
+    6:5      267  add
+    6:8       40  (
+    6:9      264  int
+    6:13     267  a
+    6:14      44  ,
+    6:16     264  int
+    6:20     267  b
+    6:21      41  )
+    6:23     123  {
+    6:25     291  return
+    6:32     267  a
+    6:34      43  +
+    6:36     267  b
+    6:37      59  ;
+    6:39     125  }
+    8:1      265  varargs
+    8:9      264  string
+    8:16     267  greet
+    8:21      40  (
+    8:22     264  string
+    8:29     267  who
+    8:32      41  )
+    8:34     123  {
+    9:3      264  string
+    9:10     267  msg
+    9:14     270  =
+    9:7      258  "hello"
+    9:22      43  +
+    9:26     258  " "
+    9:28      43  +
+    9:30      40  (
+    9:31     267  who
+    9:35      63  ?
+    9:37     267  who
+    9:41      58  :
+    9:43     267  name
+    9:47      41  )
+    9:48      59  ;
+   10:3      286  for
+   10:7       40  (
+   10:8      264  int
+   10:12     267  i
+   10:14     270  =
+   10:16     259  0
+   10:17      59  ;
+   10:19     267  i
+   10:21      60  <
+   10:23     259  3
+   10:24      59  ;
+   10:26     267  i
+   10:27     269  ++
+   10:29      41  )
+   10:31     267  counter
+   10:39     270  +=
+   10:42     267  add
+   10:45      40  (
+   10:46     267  i
+   10:47      44  ,
+   10:49     259  1
+   10:50      41  )
+   10:51      59  ;
+   11:3      277  if
+   11:6       40  (
+   11:7      267  counter
+   11:15     276  >
+   11:17     259  5
+   11:18      41  )
+   11:20     291  return
+   11:27     267  msg
+   11:30      59  ;
+   12:3      291  return
+   12:11     258  ""
+   12:12      59  ;
+   13:1      125  }
+   15:1      264  void
+   15:6      267  create
+   15:12      40  (
+   15:13      41  )
+   15:15     123  {
+   16:3      267  greet
+   16:8       40  (
+   16:15     258  "world"
+   16:16      41  )
+   16:17      59  ;
+   17:1      125  }
+Uncollected profiling events: 77.

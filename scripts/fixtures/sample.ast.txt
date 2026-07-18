@@ -1,0 +1,41 @@
+Processing config file: etc/config.test
+maximum local variables: invalid new value, resetting to default.
+New Debug log location: "log/debug.log".
+Execution root: ./
+Initializing internal stuff ....
+Event backend in use: epoll
+Loading simul_efun file : /single/simul_efun
+/std/base64.lpc:53:1: warning: Unused local variable 'p'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/base64.lpc:53:1: warning: Unused local variable 'rlen'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'parts'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'part'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+Loading master file: /single/master
+*Warning: unable to open stat file domain_stats for reading.
+*Warning: unable to open stat file author_stats for reading.
+;;; AST clone/explorer_sample.lpc -- TREE_MAIN
+(function (return (+ (local 0)(local 1))))(function ((void)assign_local (+ (string 4)(if (local 0)
+(local 0)
+(global 1))
+) 1)((void)assign_local (number 0) 2)(loop 1
+((void)+= (F_CALL_FUNCTION_BY_ADDRESS 0 2 (local 2)(number 1))(global_lvalue 0))
+(loop_incr 2)
+(loop_cond_number 2 3))
+(if (> (global 0)(number 5))
+(return (local 1)))
+(return (string 5))(return_zero))(function (pop (F_CALL_FUNCTION_BY_ADDRESS 1 1 (string 6)))(return_zero))
+;;; AST -- TREE_INIT
+(function ((void)assign (string 3)(global_lvalue 1))(return_zero))
+Trace duration: 8379.586000 us, dumping 109 events to trace_lpcc.json in separate thread.
+[thread 140378871166656d]: Dump trace successfully to file trace_lpcc.json, cost 0 ms.

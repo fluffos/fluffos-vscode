@@ -1,0 +1,106 @@
+Processing config file: etc/config.test
+maximum local variables: invalid new value, resetting to default.
+New Debug log location: "log/debug.log".
+Execution root: ./
+Initializing internal stuff ....
+Event backend in use: epoll
+Loading simul_efun file : /single/simul_efun
+/std/base64.lpc:53:1: warning: Unused local variable 'p'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/base64.lpc:53:1: warning: Unused local variable 'rlen'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'parts'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'part'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+Loading master file: /single/master
+*Warning: unable to open stat file domain_stats for reading.
+*Warning: unable to open stat file author_stats for reading.
+NAME: /clone/explorer_sample.lpc
+INHERITS:
+      name                    fio    vio
+      ----------------        ---    ---
+FUNCTIONS:
+      name                      offset  mods   flags   fio  vio # locals  # args # def args
+      ------------------------- ------  ----  -------  ---  --- --------  ------ ----------
+   0: create                         0   +--  --s----                   0       0          0 
+   1: greet                          1   +--  --s---v                   2       1          0 
+   2: add                            2   +--  --s----                   0       2          0 
+   3: #global_init#                  3   ---  --s----                   0       0          0 
+
+;;; clone/explorer_sample.lpc
+
+Globals:
+   0: counter
+   1: name
+VARIABLES defined:
+   0: public int counter
+   1: private string name
+STRINGS:
+   0: clone/explorer_sample.lpc
+   1: include/globals.h
+   2: include/tests.h
+   3: sample
+   4: hello 
+   5: 
+   6: world
+DISASSEMBLY:
+
+;; Function: public int add(int,int)
+0000:  3D 00                     transfer_local                     ; LV0
+0002:  3D 01                     transfer_local                     ; LV1
+0004:  6C                        +                                  ; 
+0005:  2F                        return                             ; 
+; clone/explorer_sample.lpc:6
+
+;; Function: public varargs string greet(string)
+0006:  02 02 04 C0               F_PUSH                             ; push string 4, local 0
+000a:  17 07 00                  branch_when_zero                   ; 0007 (0012)
+000d:  40 00                     local                              ; LV0
+000f:  19 05 00                  branch                             ; 0005 (0015)
+0012:  44 01 00                  global                             ; name(1)
+0015:  6C                        +                                  ; 
+0016:  6B 01                     (void)assign_local                 ; LV1
+; clone/explorer_sample.lpc:9
+0018:  0F                        const0                             ; 
+0019:  6B 02                     (void)assign_local                 ; LV2
+001b:  19 10 00                  branch                             ; 0010 (002c)
+001e:  02 02 C2 41               F_PUSH                             ; push local 2, number 1
+0022:  2D 02 00 02               F_CALL_FUNCTION_BY_ADDRESS         ; add, pushed_args:2
+0026:  45 00 00                  global_lvalue                      ; counter(0)
+0029:  69                        (void)+=                           ; 
+002a:  23 02                     loop_incr                          ; LV2
+002c:  22 02 03 00 00 00 00 00   loop_cond_number                   ; LV2 < 3 bbranch_when_non_zero 0000 (0032)
+0034: *** zero opcode ***
+0035: *** zero opcode ***
+0036:  18 00 02                  branch_when_non_zero               ; 0200 (0237)
+; clone/explorer_sample.lpc:10
+0039:  02 80 45 15 05 00 40 01 2F 0E 05 2F 30 0E 06 2D 01 00 01 01 30 0E 03 45 01 00 6A 30 00 00 00 78 A3 A4 73 CA 7F 00 00 03 00 00 00 00 00 00 00 46 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 00 00 00 38 A9 A4 73 CA 7F 00 00 05 00 01 01 02 00 00 00 06 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  F_PUSH                             ;  CA 7F 00 00 05 00 01 01 02 00 00 00 06 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+; clone/explorer_sample.lpc:11
+
+;;;  *** Line Number Info ***
+
+absolute line -> (file, line) table:
+0 lines from 1 [clone/explorer_sample.lpc]
+11 lines from 2 [include/globals.h]
+32 lines from 3 [include/tests.h]
+25 lines from 2 [include/globals.h]
+18 lines from 1 [clone/explorer_sample.lpc]
+
+address -> absolute line table:
+0000-0005: 74
+0006-0017: 77
+0018-0037: 78
+0038-0045: 79
+0046-004d: 84
+004e-0054: 72
+Trace duration: 8350.347000 us, dumping 109 events to trace_lpcc.json in separate thread.
+[thread 140507348989632d]: Dump trace successfully to file trace_lpcc.json, cost 0 ms.

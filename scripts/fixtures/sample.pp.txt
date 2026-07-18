@@ -1,0 +1,44 @@
+Processing config file: etc/config.test
+maximum local variables: invalid new value, resetting to default.
+New Debug log location: "log/debug.log".
+Execution root: ./
+Initializing internal stuff ....
+Event backend in use: epoll
+Loading simul_efun file : /single/simul_efun
+/std/base64.lpc:53:1: warning: Unused local variable 'p'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/base64.lpc:53:1: warning: Unused local variable 'rlen'
+   53 | }
+      | ^
+  note: while loading '/std/base64' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'parts'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+/std/number_string.lpc:45:1: warning: Unused local variable 'part'
+   45 | }
+      | ^
+  note: while loading '/std/number_string' inherited by '/single/simul_efun'
+Loading master file: /single/master
+*Warning: unable to open stat file domain_stats for reading.
+*Warning: unable to open stat file author_stats for reading.
+
+
+int counter ;
+private string name = "sample" ;
+
+int add ( int a , int b ) { return a + b ; }
+
+varargs string greet ( string who ) {
+string msg = "hello" + " " + ( who ? who : name ) ;
+for ( int i = 0 ; i < 3 ; i ++ ) counter += add ( i , 1 ) ;
+if ( counter > 5 ) return msg ;
+return "" ;
+}
+
+void create ( ) {
+greet ( "world" ) ;
+}
+Uncollected profiling events: 75.

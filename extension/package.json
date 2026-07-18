@@ -21,6 +21,28 @@
     "onLanguage:lpc"
   ],
   "contributes": {
+    "commands": [
+      {
+        "command": "lpc.openExplorer",
+        "title": "LPC: Open Compiler Explorer",
+        "icon": "$(circuit-board)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "lpc.openExplorer",
+          "when": "editorLangId == lpc",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "lpc.openExplorer",
+          "when": "editorLangId == lpc"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "lpc",

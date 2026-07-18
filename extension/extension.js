@@ -22,6 +22,8 @@ const vscode = require('vscode');
 const path = require('path');
 const cp = require('child_process');
 const { pathToFileURL } = require('url');
+const explorer = require('./explorer.js');
+const symbols = require('./symbols.js');
 
 let lintPromise = null;
 let formatPromise = null;
@@ -154,6 +156,10 @@ function activate(ctx) {
   for (const doc of vscode.workspace.textDocuments) {
     runLint(doc, lintColl, ctx);
   }
+
+  ctx.subscriptions.push(
+    vscode.commands.registerCommand('lpc.openExplorer', () => explorer.openExplorer(ctx)),
+    symbols.register(ctx));
 
   ctx.subscriptions.push(
     vscode.languages.registerDocumentFormattingEditProvider('lpc', {
