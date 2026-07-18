@@ -66,7 +66,8 @@ default (`lpc.useLanguageServer`): diagnostics (structural lint as you
 type + real lpcc compiler errors on save, including in `#include`d
 files), outline/breadcrumbs, formatting, hover, go-to-definition
 (functions/globals/defines, `#include` and `inherit` targets via the
-driver config's include dirs), completion, and custom `lpc/*` requests
+driver config's include dirs), find-references + document highlight
+(lexical, document-scope), completion, and custom `lpc/*` requests
 (`lpc/model`, `lpc/tokens`, `lpc/ast`, `lpc/bytecode`) that serve the
 Compiler Explorer's data — the webview is a pure renderer over LSP.
 Other editors can run it standalone: `node extension/server/main.js

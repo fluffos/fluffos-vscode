@@ -110,6 +110,8 @@ check('initialize: capabilities advertised',
       init.capabilities.documentSymbolProvider === true &&
       init.capabilities.hoverProvider === true &&
       init.capabilities.definitionProvider === true &&
+      init.capabilities.referencesProvider === true &&
+      init.capabilities.documentHighlightProvider === true &&
       init.capabilities.textDocumentSync.save === true &&
       /^lpc-language-server$/.test(init.serverInfo.name));
 notify('initialized', {});
@@ -173,6 +175,72 @@ const def = await request('textDocument/definition', {
 check('definition: add() call resolves to its declaration',
       def && def.uri === sampleUri && def.range.start.line ===
         sampleSrc.split('\n').findIndex((l) => l.startsWith('int add')));
+
+// references: add() has exactly its declaration + one call site
+const addCol = sampleSrc.split('\n')[callLine].indexOf('add(') + 1;
+const refs = await request('textDocument/references', {
+  textDocument: { uri: sampleUri },
+  position: { line: callLine, character: addCol },
+  context: { includeDeclaration: true },
+});
+const addDeclLine = sampleSrc.split('\n').findIndex((l) => l.startsWith('int add'));
+check('references: add() -> declaration + call site',
+      refs && refs.length === 2 &&
+      refs.some((r) => r.range.start.line === addDeclLine) &&
+      refs.some((r) => r.range.start.line === callLine));
+const refsNoDecl = await request('textDocument/references', {
+  textDocument: { uri: sampleUri },
+  position: { line: callLine, character: addCol },
+  context: { includeDeclaration: false },
+});
+check('references: includeDeclaration=false drops the declaration',
+      refsNoDecl && refsNoDecl.length === 1 && refsNoDecl[0].range.start.line === callLine);
+
+// references from INSIDE the #define directive (the whole line is one token)
+const refG = await request('textDocument/references', {
+  textDocument: { uri: sampleUri },
+  position: { line: 0, character: sampleSrc.split('\n')[0].indexOf('GREET') + 2 },
+  context: { includeDeclaration: true },
+});
+check('references: #define name from the directive itself',
+      refG && refG.length === 2 &&
+      refG.some((r) => r.range.start.line === 0) &&
+      refG.some((r) => r.range.start.line === greetUse));
+
+// documentHighlight: counter = declaration + two uses
+const counterLine = sampleSrc.split('\n').findIndex((l) => l.includes('counter +='));
+const hl = await request('textDocument/documentHighlight', {
+  textDocument: { uri: sampleUri },
+  position: { line: counterLine, character: sampleSrc.split('\n')[counterLine].indexOf('counter') + 1 },
+});
+check('documentHighlight: counter declaration + 2 uses', hl && hl.length === 3);
+
+// definition on #include / inherit targets (no compiler needed: workspace
+// mudlib root + the default /include dir)
+fs.mkdirSync(path.join(mudlib, 'include'), { recursive: true });
+fs.writeFileSync(path.join(mudlib, 'include', 'inc.h'), '#define FROM_INC 1\n');
+fs.writeFileSync(path.join(mudlib, 'base.lpc'), 'int base_fn() { return 1; }\n');
+const navSrc = '#include <inc.h>\n#include "include/inc.h"\ninherit "/base";\nint f() { return FROM_INC; }\n';
+const navUri = pathToFileURL(path.join(mudlib, 'nav.lpc')).href;
+notify('textDocument/didOpen', {
+  textDocument: { uri: navUri, languageId: 'lpc', version: 1, text: navSrc },
+});
+const incHUri = pathToFileURL(path.join(mudlib, 'include', 'inc.h')).href;
+const incDef = await request('textDocument/definition', {
+  textDocument: { uri: navUri }, position: { line: 0, character: 12 },
+});
+check('definition: #include <...> resolves via include dirs',
+      incDef && incDef.uri === incHUri);
+const incDef2 = await request('textDocument/definition', {
+  textDocument: { uri: navUri }, position: { line: 1, character: 14 },
+});
+check('definition: #include "..." resolves mudlib-relative',
+      incDef2 && incDef2.uri === incHUri);
+const inhDef = await request('textDocument/definition', {
+  textDocument: { uri: navUri }, position: { line: 2, character: 10 },
+});
+check('definition: inherit "/base" resolves extension-less to base.lpc',
+      inhDef && inhDef.uri === pathToFileURL(path.join(mudlib, 'base.lpc')).href);
 
 const comp = await request('textDocument/completion', {
   textDocument: { uri: sampleUri }, position: { line: greetUse, character: 2 },

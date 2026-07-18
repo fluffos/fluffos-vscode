@@ -150,10 +150,18 @@ lpcc.js and the synced lib/. Facts that bite:
   warnings from /std/base64.lpc publish into nvim diagnostics on save;
   symbols/hover/definition/completion and lpc/model work on
   operators/switch.lpc.
+* References + documentHighlight are LEXICAL and document-scope: every
+  identifier token with the same spelling (comments/strings are other
+  token kinds so they never pollute). A `#define NAME` declaration
+  lives INSIDE a single directive token — `wordAtOffset()` resolves the
+  cursor within it, and `referenceSpans()` adds the name's span in the
+  directive as the declaration site (honoring includeDeclaration).
 * `scripts/test-lsp.mjs` is the gate: a protocol-level harness driving
   the REAL server over stdio (initialize → didOpen → diagnostics /
-  symbols / formatting / hover / definition / completion, plus the
-  lpcc-on-save and lpc/model paths when LPCC_BIN is set). Run via
+  symbols / formatting / hover / definition — including `#include
+  <...>`/`"..."` and extension-less `inherit` targets — references /
+  documentHighlight / completion, plus the lpcc-on-save and lpc/model
+  paths when LPCC_BIN is set). Run via
   scripts/test.mjs. The hand-rolled JSON-RPC lives in the harness only;
   the server always uses the official library.
 * The VS Code client (extension/client.js, vscode-languageclient, node

@@ -102,6 +102,47 @@ local fmt = req('textDocument/formatting', {
 check('formatting: real file returns edit list (corpus is preformatted: empty ok)',
       type(fmt) == 'table')
 
+-- references: switch1 = 1 declaration + every call site in do_tests
+local refs = req('textDocument/references', {
+  textDocument = { uri = uri }, position = { line = callLine, character = callCol + 1 },
+  context = { includeDeclaration = true },
+})
+local refCount = 0
+for _, l in ipairs(lines) do
+  for _ in l:gmatch('switch1') do refCount = refCount + 1 end
+end
+local hasDecl = false
+for _, r in ipairs(refs or {}) do
+  if r.range.start.line == defLine then hasDecl = true end
+end
+check('references: switch1 declaration + all call sites',
+      refs ~= nil and #refs == refCount and hasDecl)
+
+local hi = req('textDocument/documentHighlight', {
+  textDocument = { uri = uri }, position = { line = callLine, character = callCol + 1 },
+})
+check('documentHighlight: switch1 occurrences', hi ~= nil and #hi == refCount)
+
+-- include jump on real code: reference_loop.lpc '#include <lpctypes.h>'
+-- resolves through the driver config's include dirs
+vim.cmd.edit(TESTSUITE .. '/single/tests/operators/reference_loop.lpc')
+local ibuf = vim.api.nvim_get_current_buf()
+vim.lsp.buf_attach_client(ibuf, client_id)
+vim.wait(2000, function() return #vim.lsp.get_active_clients({ bufnr = ibuf }) > 0 end)
+local iuri = vim.uri_from_bufnr(ibuf)
+local ilines = vim.api.nvim_buf_get_lines(ibuf, 0, -1, false)
+local incLine
+for i, l in ipairs(ilines) do if l:find('#include <lpctypes.h>', 1, true) then incLine = i - 1 end end
+local idef
+if incLine then
+  idef = vim.lsp.buf_request_sync(ibuf, 'textDocument/definition', {
+    textDocument = { uri = iuri }, position = { line = incLine, character = 12 },
+  }, 15000)
+  for _, res in pairs(idef or {}) do idef = res.result break end
+end
+check('definition: #include <lpctypes.h> -> testsuite/include/lpctypes.h',
+      idef ~= nil and idef.uri ~= nil and idef.uri:find('include/lpctypes%.h$') ~= nil)
+
 -- 3) M3 over a real client: full Explorer model for switch.lpc
 local client = vim.lsp.get_client_by_id(client_id)
 local mres = client.request_sync('lpc/model', { uri = uri }, 60000, buf)

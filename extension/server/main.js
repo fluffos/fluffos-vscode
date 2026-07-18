@@ -79,7 +79,9 @@ function resolveLpcc(doc) {
 // mudlib-absolute) -- used to resolve #include targets for definition.
 function includeDirs(s) {
   try {
-    const m = /^include directories\s*:\s*(.+)$/m.exec(fs.readFileSync(s.configFile, 'utf8'));
+    // configFile may be mudlib-relative (lpcc runs with cwd=mudlibRoot).
+    const cfg = path.isAbsolute(s.configFile) ? s.configFile : path.join(s.mudlibRoot, s.configFile);
+    const m = /^include directories\s*:\s*(.+)$/m.exec(fs.readFileSync(cfg, 'utf8'));
     if (m) return m[1].trim().split(':').map((d) => d.trim()).filter(Boolean);
   } catch (_e) { /* no config */ }
   return ['/include'];
@@ -298,6 +300,77 @@ connection.onDefinition(async (params) => {
   return null;
 });
 
+// The word under the cursor: an identifier token directly, or a word inside
+// a directive token (`#define NAME ...` is ONE token -- the cursor on NAME
+// must still resolve to it).
+function wordAtOffset(tokens, offset) {
+  const tok = tokenAt(tokens, offset);
+  if (!tok) return null;
+  if (tok.kind === 'identifier') return tok.text;
+  if (tok.kind === 'directive') {
+    const rel = offset - tok.start;
+    const re = /[A-Za-z_][A-Za-z0-9_]*/g;
+    let m;
+    while ((m = re.exec(tok.text)) !== null) {
+      if (m.index <= rel && rel < m.index + m[0].length) return m[0];
+    }
+  }
+  return null;
+}
+
+// Lexical references within the document: every identifier token with the
+// same spelling (comments and strings are other token kinds, so they never
+// pollute the result). #define declarations live inside a directive token
+// and are added separately.
+function referenceSpans(tokens, outline, word) {
+  const spans = tokens
+    .filter((t) => t.kind === 'identifier' && t.text === word)
+    .map((t) => ({ start: t.start, end: t.end, decl: false }));
+  const fn = outline.functions.find((f) => f.name === word);
+  if (fn && fn.selStart != null) {
+    for (const s of spans) if (s.start === fn.selStart) s.decl = true;
+  }
+  const gv = outline.variables.find((v) => v.name === word);
+  if (gv && gv.selStart != null) {
+    for (const s of spans) if (s.start === gv.selStart) s.decl = true;
+  }
+  const def = outline.defines.find((d) => d.name === word);
+  if (def) {
+    const dtok = tokens.find((t) => t.kind === 'directive' && t.start === def.start);
+    if (dtok) {
+      const m = new RegExp('#\\s*define\\s+(' + word + ')\\b').exec(dtok.text);
+      if (m) {
+        const at = dtok.start + m.index + m[0].length - word.length;
+        spans.push({ start: at, end: at + word.length, decl: true });
+      }
+    }
+  }
+  spans.sort((a, b) => a.start - b.start);
+  return spans;
+}
+
+connection.onReferences(async (params) => {
+  const doc = documents.get(params.textDocument.uri);
+  if (!doc) return null;
+  const { tokens, outline } = await outlineOf(doc);
+  const word = wordAtOffset(tokens, doc.offsetAt(params.position));
+  if (!word) return null;
+  const includeDecl = !params.context || params.context.includeDeclaration !== false;
+  return referenceSpans(tokens, outline, word)
+    .filter((s) => includeDecl || !s.decl)
+    .map((s) => ({ uri: doc.uri, range: rangeOf(doc, s.start, s.end) }));
+});
+
+connection.onDocumentHighlight(async (params) => {
+  const doc = documents.get(params.textDocument.uri);
+  if (!doc) return null;
+  const { tokens, outline } = await outlineOf(doc);
+  const word = wordAtOffset(tokens, doc.offsetAt(params.position));
+  if (!word) return null;
+  return referenceSpans(tokens, outline, word)
+    .map((s) => ({ range: rangeOf(doc, s.start, s.end), kind: 1 /* Text */ }));
+});
+
 connection.onCompletion(async (params) => {
   const doc = documents.get(params.textDocument.uri);
   if (!doc) return null;
@@ -411,6 +484,8 @@ connection.onInitialize((params) => {
       documentFormattingProvider: true,
       hoverProvider: true,
       definitionProvider: true,
+      referencesProvider: true,
+      documentHighlightProvider: true,
       completionProvider: {},
     },
     serverInfo: { name: 'lpc-language-server', version: 'fluffos@' + pin },
