@@ -54,11 +54,12 @@ async function buildModel(ctx, doc) {
   if (s.available) {
     // Prefer the --json stages (token names, AST source lines); older lpcc
     // rejects --json, so fall back to parsing the human text formats.
-    const [pp, toksJ, astJ, bytecode] = await Promise.all([
+    const [pp, toksJ, astJ, bytecode, bytecodeO0] = await Promise.all([
       lpcc.runStage(s, s.relPath, 'preprocessed'),
       lpcc.runStage(s, s.relPath, 'tokensJson'),
       lpcc.runStage(s, s.relPath, 'astJson'),
       lpcc.runStage(s, s.relPath, 'bytecode'),
+      lpcc.runStage(s, s.relPath, 'bytecodeO0'),
     ]);
     let tokens = lpcc.tokensFromJson(lpcc.parseEnvelopes(toksJ.raw));
     if (tokens === null) {
@@ -81,6 +82,7 @@ async function buildModel(ctx, doc) {
       tokens,
       ast,
       bytecode: bytecode.ok ? lpcc.parseBytecode(bytecode.raw) : null,
+      bytecodeO0: bytecodeO0.ok ? lpcc.parseBytecode(bytecodeO0.raw) : null,
       diagnostics: bytecode.diagnostics,
     };
   }
@@ -256,6 +258,19 @@ function webviewHtml(webview) {
   svg .gnode text { fill: var(--vscode-editor-foreground); font-size: 11px; }
   svg path.edge { fill: none; stroke: var(--vscode-panel-border, #888a); }
   /* bytecode */
+  #bc-bar { display: flex; gap: 14px; align-items: center; margin: 4px 0 8px; }
+  #bc-bar label { cursor: pointer; }
+  tr.ins.haslink { cursor: pointer; }
+  #bc-tip { position: fixed; z-index: 10; display: none; max-width: 640px; overflow: hidden;
+            background: var(--vscode-editorWidget-background, #252526);
+            border: 1px solid var(--vscode-focusBorder, #07f); border-radius: 4px;
+            padding: 6px 10px; box-shadow: 0 4px 12px #0008; pointer-events: none; }
+  #bc-tip .tip-file { opacity: .6; font-size: 11px; margin-bottom: 3px; }
+  #bc-tip .srcline { white-space: pre; }
+  #bc-tip .srcline .ln { display: inline-block; width: 2.6em; text-align: right; padding-right: 8px;
+                         opacity: .45; }
+  #bc-tip .srcline.cur { background: var(--vscode-editor-selectionHighlightBackground, #07f3);
+                         border-radius: 2px; }
   details { margin: 6px 0; }
   summary { cursor: pointer; font-weight: 600; }
   summary .jump { font-weight: 400; margin-left: 8px; }
@@ -411,9 +426,10 @@ function webviewHtml(webview) {
     model.lpcc.ast.forEach((sec, si) => {
       html += '<h3>' + esc(sec.title) + '</h3><ul class="ast root">';
       sec.roots.forEach((r, ri) => {
-        // TREE_MAIN roots are (function ...) in source definition order.
+        // TREE_MAIN roots are (function ...) in source definition order
+        // (JSON labels carry the function index: "function 2").
         let label = r.label;
-        if (label === 'function' && si === 0 && fnNames[ri]) label += ' — ' + fnNames[ri] + '()';
+        if (/^function($| )/.test(label) && si === 0 && fnNames[ri]) label += ' — ' + fnNames[ri] + '()';
         html += renderAstNode({ ...r, label }, [si, ri], ctxInfo);
       });
       html += '</ul>';
@@ -464,8 +480,15 @@ function webviewHtml(webview) {
   }
 
   function drawAstGraph(el, ctxInfo) {
-    const root = astSelPath.length >= 2 ? findAstNode(astSelPath)
-      : (model.lpcc.ast[0] && model.lpcc.ast[0].roots[0]) || null;
+    // Graph the selected subtree; a selected LEAF graphs its parent so the
+    // pane always shows context, not a single lonely box.
+    let selPath = astSelPath;
+    let root = selPath.length >= 2 ? findAstNode(selPath) : null;
+    while (root && root.children.length === 0 && selPath.length > 2) {
+      selPath = selPath.slice(0, -1);
+      root = findAstNode(selPath);
+    }
+    if (!root) root = (model.lpcc.ast[0] && model.lpcc.ast[0].roots[0]) || null;
     if (!root) { el.innerHTML = '<p class="muted">Select a node to graph its subtree.</p>'; return; }
     // Tidy-ish layout: x from leaf ordering, y from depth. Cap size.
     const MAXN = 400;
@@ -509,19 +532,42 @@ function webviewHtml(webview) {
       if (lbl.length > 24) lbl = lbl.slice(0, 23) + '…';
       svg += '<g class="gnode' + (i === 0 && astSelPath.length >= 2 ? ' sel' : '') + '">' +
         '<rect x="' + (m.x + PAD) + '" y="' + (m.depth * H + PAD) + '" width="' + m.w + '" height="22"/>' +
-        '<text x="' + (m.x + m.w / 2 + PAD) + '" y="' + (m.depth * H + 25 + PAD) + '" text-anchor="middle">' + esc(lbl) + '</text></g>';
+        '<text x="' + (m.x + m.w / 2 + PAD) + '" y="' + (m.depth * H + 15 + PAD) + '" text-anchor="middle">' + esc(lbl) + '</text></g>';
     });
     svg += '</svg>';
     el.innerHTML = (count >= MAXN ? '<p class="muted">Subtree truncated at ' + MAXN + ' nodes — select a smaller node.</p>' : '') + svg;
   }
 
   // ---- Bytecode ------------------------------------------------------------
+  let bcMode = 'opt'; // 'opt' (default optimized dump) | 'O0'
+
+  function srcLineHtml() {
+    // Line-addressable syntax-colored source: tokens re-chunked per line.
+    // NB: this code lives inside webviewHtml's outer template literal --
+    // escape sequences must be doubled or they expand at THAT level.
+    const lines = [[]];
+    for (const t of model.tokens) {
+      const parts = t.text.split('\\n');
+      parts.forEach((p, i) => {
+        if (i > 0) lines.push([]);
+        if (p) lines[lines.length - 1].push('<span class="lpc-' + t.kind + '">' + esc(p) + '</span>');
+      });
+    }
+    return lines.map((spans) => spans.join(''));
+  }
+
   function renderBytecode(el) {
     if (!model.lpcc.available) { el.innerHTML = lpccHint('the bytecode view'); return; }
-    const bc = model.lpcc.bytecode;
+    const bc = bcMode === 'O0' ? (model.lpcc.bytecodeO0 || model.lpcc.bytecode) : model.lpcc.bytecode;
     if (!bc) { el.innerHTML = '<div class="hint">No bytecode captured — the file may not compile; see Problems.</div>'; return; }
     const outlineByName = new Map((model.outline.functions || []).map((f) => [f.name, f]));
-    let html = '<h3>' + esc(bc.name || model.file) + '</h3>';
+    let html = '<div id="bc-bar"><strong>' + esc(bc.name || model.file) + '</strong>' +
+      '<label><input type="radio" name="bcmode" value="opt"' + (bcMode === 'opt' ? ' checked' : '') +
+      '> optimized</label>' +
+      '<label><input type="radio" name="bcmode" value="O0"' + (bcMode === 'O0' ? ' checked' : '') +
+      '> -O0 (optimizer off)</label>' +
+      (bcMode === 'O0' && !model.lpcc.bytecodeO0 ? '<span class="muted">-O0 dump unavailable; showing optimized</span>' : '') +
+      '<span class="muted">hover a row for its source; click to jump</span></div>';
     html += '<details><summary>Program tables</summary>' +
       '<h4>Functions</h4><table>' + bc.functionsTable.map((f) =>
         '<tr><td class="muted">' + f.index + '</td><td>' + esc(f.name) + '</td></tr>').join('') + '</table>' +
@@ -536,12 +582,16 @@ function webviewHtml(webview) {
         (o ? ' <a class="link jump" data-l="' + o.line + '" data-c="' + o.col + '">go to source ↗</a>' : '') +
         '</summary><table><tr><th>addr</th><th>bytes</th><th>instruction</th><th>operands</th><th>src</th></tr>';
       for (const ins of fn.instructions) {
-        let comment = esc(ins.comment);
+        // Garbage rows from the known disassembler decode bug can be huge.
+        let comment = esc(ins.comment.length > 120 ? ins.comment.slice(0, 117) + '…' : ins.comment);
         if (ins.target) {
           comment = comment.replace('(' + ins.target + ')',
             '(<a class="link tgt" data-a="' + ins.target + '">' + ins.target + '</a>)');
         }
-        html += '<tr id="a' + ins.addr + '"><td class="addr">' + ins.addr + '</td><td class="hex">' +
+        const inFile = ins.srcFile && model.lpcc.relPath &&
+          (ins.srcFile === model.lpcc.relPath || '/' + ins.srcFile === model.lpcc.relPath);
+        html += '<tr id="a' + ins.addr + '" class="ins' + (inFile ? ' haslink' : '') +
+          (inFile ? '" data-srcl="' + ins.srcLine : '') + '"><td class="addr">' + ins.addr + '</td><td class="hex">' +
           esc(ins.hex.length > 26 ? ins.hex.slice(0, 24) + '…' : ins.hex) + '</td><td>' + esc(ins.mnemonic) +
           '</td><td>' + comment + '</td><td>' +
           (ins.srcLine ? '<a class="link src" data-f="' + esc(ins.srcFile) + '" data-l="' + ins.srcLine +
@@ -550,7 +600,35 @@ function webviewHtml(webview) {
       }
       html += '</table></details>';
     }
+    html += '<div id="bc-tip"></div>';
     el.innerHTML = html;
+    // mode toggle
+    el.querySelectorAll('input[name=bcmode]').forEach((r) => r.onchange = () => {
+      bcMode = r.value; render();
+    });
+    // hover box: the source line (with a little context) for this instruction
+    const lines = srcLineHtml();
+    const tip = el.querySelector('#bc-tip');
+    el.querySelectorAll('tr.ins.haslink').forEach((tr) => {
+      const l = +tr.dataset.srcl;
+      tr.onmouseenter = () => {
+        let body = '';
+        for (let i = Math.max(1, l - 1); i <= Math.min(lines.length, l + 1); i++) {
+          body += '<div class="srcline' + (i === l ? ' cur' : '') + '"><span class="ln">' + i +
+                  '</span>' + (lines[i - 1] || '') + '</div>';
+        }
+        tip.innerHTML = '<div class="tip-file">' + esc(model.file) + ':' + l + '</div>' + body;
+        tip.style.display = 'block';
+      };
+      tr.onmousemove = (ev) => {
+        const pad = 14;
+        tip.style.left = Math.min(ev.clientX + pad, window.innerWidth - tip.offsetWidth - 8) + 'px';
+        tip.style.top = (ev.clientY + pad + tip.offsetHeight > window.innerHeight
+          ? ev.clientY - tip.offsetHeight - pad : ev.clientY + pad) + 'px';
+      };
+      tr.onmouseleave = () => { tip.style.display = 'none'; };
+      tr.onclick = () => post({ type: 'reveal', line: l, col: 1 });
+    });
     el.querySelectorAll('a.jump').forEach((a) => a.onclick = (e) => {
       e.stopPropagation(); e.preventDefault();
       post({ type: 'reveal', line: +a.dataset.l, col: +a.dataset.c });

@@ -53,8 +53,7 @@ STRINGS:
 DISASSEMBLY:
 
 ;; Function: public int add(int,int)
-0000:  3D 00                     transfer_local                     ; LV0
-0002:  3D 01                     transfer_local                     ; LV1
+0000:  02 02 C0 C1               F_PUSH                             ; push local 0, local 1
 0004:  6C                        +                                  ; 
 0005:  2F                        return                             ; 
 ; clone/explorer_sample.lpc:6
@@ -117,5 +116,5 @@ address -> absolute line table:
 0038-0045: 79
 0046-004d: 84
 004e-0054: 72
-Trace duration: 8778.028000 us, dumping 110 events to trace_lpcc.json in separate thread.
-[thread 139687047984832d]: Dump trace successfully to file trace_lpcc.json, cost 0 ms.
+Trace duration: 8381.036000 us, dumping 108 events to trace_lpcc.json in separate thread.
+[thread 139992846300864d]: Dump trace successfully to file trace_lpcc.json, cost 0 ms.

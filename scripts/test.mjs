@@ -119,6 +119,14 @@ check('lpcc bytecode: instructions carry addr/mnemonic and trailing src annotati
       })());
 check('lpcc bytecode: address->line table parsed',
       pbc.addressLines.length > 0 && pbc.addressLines.every((r) => r.absLine > 0));
+// Pins the upstream loop_cond_number decode fix: before it, create() and
+// #global_init# were swallowed into greet()'s garbage tail.
+check('lpcc bytecode: all four functions disassemble (decode-desync fix)',
+      pbc.functions.length === 4 && pbc.functions.some((f) => f.name === 'create'));
+
+const pbcO0 = lpccSvc.parseBytecode(fixture('sample.disO0.txt'));
+check('lpcc bytecode -O0: parses as a distinct dump',
+      pbcO0 && pbcO0.functions.length >= 2 && pbcO0.name === pbc.name);
 
 check('lpcc diagnostics: clang-style lines extracted from mixed output',
       lpccSvc.parseDiagnostics(fixture('sample.dis.txt')).length === 4);
