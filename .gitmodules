@@ -1,0 +1,3 @@
+[submodule "fluffos"]
+	path = fluffos
+	url = https://github.com/fluffos/fluffos.git

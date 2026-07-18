@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The grammar/tooling test suite from the pinned fluffos commit. It also
+      # verifies the extension's generated assets (syntaxes/, lib/) are in sync
+      # with their sources, so a stale pin fails here, not at runtime.
+      - name: Grammar and tooling tests
+        run: node fluffos/tools/lpc-syntax/test.mjs
+
+      - name: Stage and package extension
+        run: node scripts/build.mjs
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fluffos-lpc-vsix-${{ github.sha }}
+          path: out/*.vsix
+          if-no-files-found: error

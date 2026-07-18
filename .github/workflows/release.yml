@@ -1,0 +1,78 @@
+name: Release
+
+# Two ways to cut a release:
+#   1. Push a tag `vX.Y.Z`.
+#   2. Run this workflow manually with a `version` input (creates the tag).
+#
+# Both produce a GitHub Release with the .vsix attached. Publishing to the
+# VS Code Marketplace / Open VSX additionally happens when the VSCE_PAT /
+# OVSX_PAT repository secrets are configured; without them those steps are
+# skipped and the release is GitHub-only.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, plain X.Y.Z (no leading v)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Determine version
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="${{ inputs.version }}"
+          fi
+          echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' \
+            || { echo "Bad version '$VERSION' (want plain X.Y.Z; vsce rejects suffixes)"; exit 1; }
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Grammar and tooling tests
+        run: node fluffos/tools/lpc-syntax/test.mjs
+
+      - name: Stage and package extension
+        run: node scripts/build.mjs --version "${{ steps.ver.outputs.version }}"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ steps.ver.outputs.version }}"
+          NOTES="Pinned fluffos commit: $(git -C fluffos rev-parse HEAD)"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" \
+              --generate-notes --notes "$NOTES" out/fluffos-lpc-*.vsix
+          else
+            gh release create "$TAG" --title "$TAG" \
+              --generate-notes --notes "$NOTES" out/fluffos-lpc-*.vsix
+          fi
+
+      - name: Publish to VS Code Marketplace
+        if: env.VSCE_PAT != ''
+        run: npx --yes @vscode/vsce publish --packagePath out/fluffos-lpc-*.vsix
+
+      - name: Publish to Open VSX
+        if: env.OVSX_PAT != ''
+        run: npx --yes ovsx publish out/fluffos-lpc-*.vsix -p "$OVSX_PAT"

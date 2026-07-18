@@ -1,0 +1,70 @@
+name: Bump fluffos pin
+
+# Weekly (and on demand): move the fluffos submodule to the latest master,
+# run the tests and a packaging dry run against the new pin, and open a PR.
+#
+# Note: PRs opened with the built-in GITHUB_TOKEN do not trigger the CI
+# workflow (GitHub prevents recursive workflow runs). The tests already ran
+# here against the new pin; to get a CI check on the PR itself, close and
+# reopen it or push any commit to the branch.
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Update submodule to latest fluffos master
+        id: bump
+        run: |
+          git -C fluffos fetch --depth 1 origin master
+          git -C fluffos checkout --detach FETCH_HEAD
+          if git diff --quiet -- fluffos; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Already at latest fluffos master."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "sha=$(git -C fluffos rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test and package against the new pin
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          node fluffos/tools/lpc-syntax/test.mjs
+          node scripts/build.mjs
+
+      - name: Open pull request
+        if: steps.bump.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH="bump-fluffos-${{ steps.bump.outputs.sha }}"
+          if git ls-remote --exit-code origin "refs/heads/$BRANCH" >/dev/null 2>&1; then
+            echo "Branch $BRANCH already exists; a bump PR is presumably open."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add fluffos
+          git commit -m "Bump fluffos submodule to ${{ steps.bump.outputs.sha }}"
+          git push -u origin "$BRANCH"
+          gh pr create \
+            --title "Bump fluffos submodule to ${{ steps.bump.outputs.sha }}" \
+            --body "Automated bump of the fluffos submodule to the latest master (${{ steps.bump.outputs.sha }}). The grammar/tooling tests and a packaging dry run passed against the new pin in the [bump workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}). CI does not auto-run on PRs opened with GITHUB_TOKEN -- close/reopen the PR or push to the branch if you want the check on the PR itself."
