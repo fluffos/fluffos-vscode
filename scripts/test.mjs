@@ -149,6 +149,24 @@ check('lpcc bytecode: functionals/anon-func rows parse (firstclass file)',
       pfc.functions.reduce((n, f) => n + f.instructions.filter((i) => !i.mnemonic).length, 0) === 0 &&
       pfc.functions.some((f) => f.instructions.some((i) => i.comment.includes('functional'))));
 
+// --json bytecode envelope (JSON-native dump_prog): rows carry file:line
+// natively and match the text parser's model shape.
+const jbc = lpccSvc.bytecodeFromJson(lpccSvc.parseEnvelopes(fixture('sample.bytecode-json.txt')));
+check('lpcc --json bytecode: model matches the text parse',
+      (() => {
+        if (!jbc || jbc.name !== pbc.name) return false;
+        if (jbc.functions.map((f) => f.name).join(',') !== pbc.functions.map((f) => f.name).join(',')) return false;
+        const a = jbc.functions.find((f) => f.name === 'greet').instructions
+          .find((i) => i.mnemonic === 'branch_when_zero');
+        const b = pbc.functions.find((f) => f.name === 'greet').instructions
+          .find((i) => i.mnemonic === 'branch_when_zero');
+        return a.addr === b.addr && a.target === b.target &&
+               a.srcFile === b.srcFile && a.srcLine === b.srcLine;
+      })());
+const jfc = lpccSvc.bytecodeFromJson(lpccSvc.parseEnvelopes(fixture('sample-firstclass.bytecodeO0-json.txt')));
+check('lpcc --json bytecode: -O0 envelope flags optimized:false',
+      jfc && jfc.optimized === false && jfc.functions.length === 24);
+
 const pbcO0 = lpccSvc.parseBytecode(fixture('sample.disO0.txt'));
 check('lpcc bytecode -O0: parses as a distinct dump',
       pbcO0 && pbcO0.functions.length >= 2 && pbcO0.name === pbc.name);

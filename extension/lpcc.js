@@ -34,6 +34,8 @@ const STAGE_FLAGS = {
   // lack. Older lpcc rejects --json; callers fall back to the text stages.
   tokensJson: ['--json', '--tokens'],
   astJson: ['--json', '--ast'],
+  bytecodeJson: ['--json'],
+  bytecodeO0Json: ['--json', '-O0'],
 };
 
 // One diagnostic line: /path/file.lpc:12:5: error: message
@@ -132,6 +134,60 @@ function astFromJson(envelopes) {
     sections: ast.trees.map((t) => ({ title: t.title, roots: t.roots.map(conv) })),
     strings: files.strings,
   };
+}
+
+// bytecode envelope -> the same model shape parseBytecode() produces, but
+// with instruction file:line native to each row (no trailing-annotation
+// reconstruction) and structured switch tables preserved under row.cases.
+function bytecodeFromJson(envelopes) {
+  const env = envelopes.find((e) => e.stage === 'bytecode');
+  if (!env) return null;
+  const P = env.program;
+  const toHex = (a) => a.toString(16).padStart(4, '0');
+  const conv = (p) => ({
+    file: p.file,
+    globals: (p.globals || []).map((g) => ({ index: g.i, name: g.name })),
+    variables: (p.variables || []).map((v) => ({ index: v.i, decl: v.decl })),
+    strings: (p.strings || []).map((s) => ({ index: s.i, text: s.text })),
+    functions: (p.functions || []).map((f) => ({
+      signature: f.sig,
+      name: f.name,
+      instructions: (f.instructions || []).map((r) => {
+        const ins = {
+          addr: toHex(r.a),
+          hex: (r.x || '').trim(),
+          mnemonic: r.m,
+          comment: r.o || '',
+          srcFile: r.f || null,
+          srcLine: r.l || 0,
+        };
+        if (r.cases) {
+          ins.switchCases = r.cases;
+          ins.comment = 'table ' + toHex(r.tstart) + '-' + toHex(r.tend) +
+            ' default ' + toHex(r.deflt) + ' (' + r.cases.length + ' cases)';
+        }
+        const tm = /\(([0-9a-f]{4,})\)/.exec(ins.comment);
+        if (tm) ins.target = tm[1];
+        return ins;
+      }),
+    })),
+    addressLines: (p.line_ranges || []).map((r) => ({
+      from: toHex(r.from), to: toHex(r.to), absLine: r.line,
+    })),
+  });
+  const model = {
+    name: P.name,
+    optimized: env.optimized,
+    functionsTable: (P.functions_table || []).map((f) => ({ index: f.i, name: f.name })),
+    programs: (P.programs || []).map(conv),
+  };
+  const top = model.programs[0] || conv({});
+  model.globals = top.globals;
+  model.variables = top.variables;
+  model.strings = top.strings;
+  model.functions = top.functions;
+  model.addressLines = top.addressLines;
+  return model;
 }
 
 // --- tokens stage --------------------------------------------------------------
@@ -473,6 +529,7 @@ module.exports = {
   parseEnvelopes,
   tokensFromJson,
   astFromJson,
+  bytecodeFromJson,
   parseDiagnostics,
   parseTokens,
   parseAst,

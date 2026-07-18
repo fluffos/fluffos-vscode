@@ -54,12 +54,12 @@ async function buildModel(ctx, doc) {
   if (s.available) {
     // Prefer the --json stages (token names, AST source lines); older lpcc
     // rejects --json, so fall back to parsing the human text formats.
-    const [pp, toksJ, astJ, bytecode, bytecodeO0] = await Promise.all([
+    const [pp, toksJ, astJ, bcJ, bcO0J] = await Promise.all([
       lpcc.runStage(s, s.relPath, 'preprocessed'),
       lpcc.runStage(s, s.relPath, 'tokensJson'),
       lpcc.runStage(s, s.relPath, 'astJson'),
-      lpcc.runStage(s, s.relPath, 'bytecode'),
-      lpcc.runStage(s, s.relPath, 'bytecodeO0'),
+      lpcc.runStage(s, s.relPath, 'bytecodeJson'),
+      lpcc.runStage(s, s.relPath, 'bytecodeO0Json'),
     ]);
     let tokens = lpcc.tokensFromJson(lpcc.parseEnvelopes(toksJ.raw));
     if (tokens === null) {
@@ -74,6 +74,19 @@ async function buildModel(ctx, doc) {
       const a = await lpcc.runStage(s, s.relPath, 'ast');
       ast = a.ok ? lpcc.parseAst(a.raw) : [];
     }
+    // Bytecode: prefer the native JSON envelope; an lpcc without --json
+    // bytecode support (pre-2026-07, or --json-tokens-only builds) falls
+    // back to parsing the human text dump.
+    let bytecode = lpcc.bytecodeFromJson(lpcc.parseEnvelopes(bcJ.raw));
+    let bytecodeO0 = lpcc.bytecodeFromJson(lpcc.parseEnvelopes(bcO0J.raw));
+    let diagnostics = bcJ.diagnostics;
+    if (bytecode === null) {
+      const bt = await lpcc.runStage(s, s.relPath, 'bytecode');
+      bytecode = bt.ok ? lpcc.parseBytecode(bt.raw) : null;
+      diagnostics = bt.diagnostics;
+      const b0 = await lpcc.runStage(s, s.relPath, 'bytecodeO0');
+      bytecodeO0 = b0.ok ? lpcc.parseBytecode(b0.raw) : null;
+    }
     model.lpcc = {
       available: true,
       relPath: s.relPath,
@@ -81,9 +94,9 @@ async function buildModel(ctx, doc) {
       preprocessed: pp.ok ? lpcc.stripNoise(pp.raw) : null,
       tokens,
       ast,
-      bytecode: bytecode.ok ? lpcc.parseBytecode(bytecode.raw) : null,
-      bytecodeO0: bytecodeO0.ok ? lpcc.parseBytecode(bytecodeO0.raw) : null,
-      diagnostics: bytecode.diagnostics,
+      bytecode,
+      bytecodeO0,
+      diagnostics,
     };
   }
   return model;
