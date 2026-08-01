@@ -66,7 +66,7 @@ jobs:
 
       - name: Cache wasm deps (ICU)
         id: wasm-deps-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: /opt/wasm-deps
           key: wasm-deps-icu74-2-emcc-${{ env.EMSDK }}-6.0.3
