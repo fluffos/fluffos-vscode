@@ -59,7 +59,7 @@ jobs:
       # bundles it (zero-setup compiler). Mirrors the fluffos repo's own
       # build-wasm action (emsdk pin + wasm-deps cache), run inside the
       # submodule; build.mjs auto-picks fluffos/build-wasm/src.
-      - uses: mymindstorm/setup-emsdk@v14
+      - uses: mymindstorm/setup-emsdk@v16
         with:
           version: '6.0.3'
           actions-cache-folder: emsdk-cache
